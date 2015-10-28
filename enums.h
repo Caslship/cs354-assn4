@@ -33,8 +33,8 @@ enum TRANS_ID
 
 enum LIGHT_ID
 {
-    POINT,
-    DIRECTION
+    POINT_LIGHT,
+    DIRECTION_LIGHT
 };
 
 // Primary commands
