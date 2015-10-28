@@ -1,0 +1,67 @@
+/*
+* Assignment #3
+* Name: Jason Palacios
+* UT EID: jap4839
+* UTCS: jason777
+*/
+
+COMMAND-LINE ARGUMENTS
+----------------------
+The program accepts a limited number of command line switches:
+
+-f <inputfilename>: Read in a file as a series of commands to execute.
+-d: Run the program in debug mode.
+
+MOUSE CONTROLS
+--------------
+The mouse is used for navigating the view space and has several different features:
+
+-- Left click & drag: Orbit around the point of interest.
+-- Middle click & drag: Pan the object.
+-- Right click & drag: Zoom in/out on the point of interest.
+
+KEYBOARD COMMANDS
+-----------------
+With the window as active (make sure the display window is clicked on), different key
+sequences can be input and executed to affect the current view. You may see this input 
+through console output. Input a key sequence and press enter to execute a command:
+
+-- L <objectfilename>: Load and display the specified .obj file.
+-- D: Pop current object from display stack. Displays previous object.
+-- I: Load the identity matrix as the modeling transform.
+-- M <render>: Set render mode. The default is solid mode. Options:
+---- P: Point mode (just draw vertices).
+---- W: Wireframe mode (draw the edges of the mesh).
+---- S: Solid mode (draw filled triangles).
+---- L: Shaded mode (basic lighting).
+---- F: Face normals (basic lighting and rough shading).
+---- V: Vertex normals (basic lighting and smooth shading).
+-- T <tx> <ty> <tz>: Add a translation to the current modeling transformation.
+-- S <sx> <sy> <sz>: Add a scale to the current modeling transformation.
+-- R <theta> <ax> <ay> <az>: Add a rotation to the current modeling transformation.
+-- V: Subsequent transformations are interpreted in view coordinates.
+-- W: Subsequent transformations are interpreted in world coordinates (default setting).
+-- Z: Toggle on/off debug mode.
+-- Q: Quit the application.
+-- [ENTER]: Execute current command.
+-- [ESC]: Quit application.
+
+DEBUG MODE
+----------
+The main point of debug mode was to aid me in ensuring program correctness. While in this
+mode, the user will experience:
+
+-- Writing information about executed keyboard commands to console.
+-- A square as the default model to display when no object is loaded.
+-- Trippy colors while in "solid mode" (see "Keyboard Commands").
+-- Rendering of normal vector lines protruding from models (changes with render mode).
+-- An initial bounding rectangle for the object to keep track of V/W transformations
+
+EXTRA CREDIT
+------------
+There are a number of extra features added to the program that may possibly taken into 
+consideration when grading:
+
+-- An extra command-line switch to start the program in debug mode
+-- A debug mode that displays useful artifacts on the model or information in the console
+-- Adjusted zoom of camera upon loading an object so that it fits comfortably on the screen
