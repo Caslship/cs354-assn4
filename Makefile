@@ -1,20 +1,17 @@
 # Linux makefile for CS 354 skeleton code
-
-CC= g++
-
 ifneq (,$(findstring WINDOWS,$(PATH)))
     UNAME := Windows
 else
     UNAME := $(shell uname -s)
 endif
 
-LIBS= -L./lib
-INCLUDES= -I./include
 ifeq ($(UNAME),Linux)
-    LIBS+= -lXext -lX11 -lglui -lGL -lGLU -lglut
+	CC= clang++
+    LIBS= -L./lib -L/usr/lib/nvidia-340 -lXext -lX11 -lglui -lGL -lGLU -lglut
 endif
 ifeq ($(UNAME),Windows)
-    LIBS+= -lglui -lopengl32 -lglu32 -lfreeglut
+	CC= g++
+    LIBS= -L./lib -lglui -lopengl32 -lglu32 -lfreeglut
 endif
 
 CFLAGS= -std=c++11 -O2 -Wno-unused-result
@@ -23,6 +20,8 @@ PROD= obj_viewer
 HDRS= $(shell ls *.h)
 SRCS= $(shell ls *.cpp)
 OBJS= $(patsubst %.cpp, %.o, $(SRCS))
+
+INCLUDES= -I./include
 
 all: $(PROD)
 
