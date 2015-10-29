@@ -9,6 +9,7 @@
 #define __HELPERS_H__
 
 #include <GL/glut.h>
+#include <GL/glui.h>
 #include <fstream>
 #include <iostream>
 #include <string>

@@ -8,11 +8,13 @@ else
     UNAME := $(shell uname -s)
 endif
 
+LIBS= -L./lib
+INCLUDES= -I./include
 ifeq ($(UNAME),Linux)
-    LIBS= -lXext -lX11 -lglui -lGL -lGLU -lglut
+    LIBS+= -lXext -lX11 -lglui -lGL -lGLU -lglut
 endif
 ifeq ($(UNAME),Windows)
-    LIBS= -lglui -lopengl32 -lglu32 -lfreeglut
+    LIBS+= -lglui -lopengl32 -lglu32 -lfreeglut
 endif
 
 CFLAGS= -std=c++11 -O2 -Wno-unused-result
