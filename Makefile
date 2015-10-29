@@ -6,11 +6,11 @@ else
 endif
 
 ifeq ($(UNAME),Linux)
-	CC= clang++
+    CC= clang++
     LIBS= -L./lib -L/usr/lib/nvidia-340 -lXext -lX11 -lglui -lGL -lGLU -lglut
 endif
 ifeq ($(UNAME),Windows)
-	CC= g++
+    CC= g++
     LIBS= -L./lib -lglui -lopengl32 -lglu32 -lfreeglut
 endif
 
