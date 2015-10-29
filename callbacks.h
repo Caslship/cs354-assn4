@@ -68,7 +68,7 @@ static string command = "";
 extern bool ExecuteCommand();
 
 // Render 
-void Display()
+void Display(void)
 {
     // Clear screen and misc settings    
     glShadeModel(GL_SMOOTH);

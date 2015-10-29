@@ -32,13 +32,18 @@ static string y = "";
 static string z = "";
 static string angle = "";
 
+int main_window;
+GLUI * glui;
+char * render_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
+int curr_render = 0;
+
 // Initalize GLUT and window properties
 void InitializeWindow(int& argc, char ** argv)
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(win_width, win_height);
-    glutCreateWindow("Jason Palacios - OBJ Viewer");
+    main_window = glutCreateWindow("Jason Palacios - OBJ Viewer");
 }
 
 // Initial settings for OpenGL
@@ -53,10 +58,78 @@ void InitializeGraphics(void)
 void RegisterCallbacks(void)
 {
     glutDisplayFunc(Display);
-    glutReshapeFunc(Reshape);
-    glutMouseFunc(MouseButton);
+    GLUI_Master.set_glutReshapeFunc(Reshape);  
+    GLUI_Master.set_glutKeyboardFunc(Keyboard);
+    GLUI_Master.set_glutSpecialFunc(NULL);
+    GLUI_Master.set_glutMouseFunc(MouseButton);
     glutMotionFunc(MouseMotion);
-    glutKeyboardFunc(Keyboard);
+}
+
+void InitializeGUI(void)
+{
+    /*** Create the side subwindow ***/
+    glui = GLUI_Master.create_glui_subwindow(main_window, GLUI_SUBWINDOW_RIGHT);
+
+    GLUI_Listbox * list = new GLUI_Listbox(glui, "Render:", &curr_render);
+    for(int i = 0; i < 6; i++ )
+        list->add_item(i, render_list[i]);
+
+    // obj_panel = new GLUI_Rollout(glui, "Properties", false );
+
+    /***** Control for object params *****/
+    // GLUI_Spinner *scale_spinner = 
+    // new GLUI_Spinner( obj_panel, "Scale:", &scale);
+    // scale_spinner->set_float_limits( .2f, 4.0 );
+    // scale_spinner->set_alignment( GLUI_ALIGN_RIGHT );
+
+
+    /******** Add some controls for lights ********/
+    // GLUI_Rollout *roll_lights = new GLUI_Rollout(glui, "Lights", false );
+
+    // GLUI_Panel *light0 = new GLUI_Panel( roll_lights, "Light 1" );
+    // GLUI_Panel *light1 = new GLUI_Panel( roll_lights, "Light 2" );
+
+    // new GLUI_Checkbox( light0, "Enabled", &light0_enabled,
+    //     LIGHT0_ENABLED_ID, control_cb );
+    // light0_spinner = 
+    // new GLUI_Spinner( light0, "Intensity:", 
+    //     &light0_intensity, LIGHT0_INTENSITY_ID,
+    //     control_cb );
+    // light0_spinner->set_float_limits( 0.0, 1.0 );
+    // GLUI_Scrollbar *sb;
+    // sb = new GLUI_Scrollbar( light0, "Red",GLUI_SCROLL_HORIZONTAL,
+    //     &light0_diffuse[0],LIGHT0_INTENSITY_ID,control_cb);
+    // sb->set_float_limits(0,1);
+    // sb = new GLUI_Scrollbar( light0, "Green",GLUI_SCROLL_HORIZONTAL,
+    //     &light0_diffuse[1],LIGHT0_INTENSITY_ID,control_cb);
+    // sb->set_float_limits(0,1);
+    // sb = new GLUI_Scrollbar( light0, "Blue",GLUI_SCROLL_HORIZONTAL,
+    //     &light0_diffuse[2],LIGHT0_INTENSITY_ID,control_cb);
+    // sb->set_float_limits(0,1);
+    // new GLUI_Checkbox( light1, "Enabled", &light1_enabled,
+    //     LIGHT1_ENABLED_ID, control_cb );
+    // light1_spinner = 
+    // new GLUI_Spinner( light1, "Intensity:",
+    //     &light1_intensity, LIGHT1_INTENSITY_ID,
+    //     control_cb );
+    // light1_spinner->set_float_limits( 0.0, 1.0 );
+    // sb = new GLUI_Scrollbar( light1, "Red",GLUI_SCROLL_HORIZONTAL,
+    //     &light1_diffuse[0],LIGHT1_INTENSITY_ID,control_cb);
+    // sb->set_float_limits(0,1);
+    // sb = new GLUI_Scrollbar( light1, "Green",GLUI_SCROLL_HORIZONTAL,
+    //     &light1_diffuse[1],LIGHT1_INTENSITY_ID,control_cb);
+    // sb->set_float_limits(0,1);
+    // sb = new GLUI_Scrollbar( light1, "Blue",GLUI_SCROLL_HORIZONTAL,
+    //     &light1_diffuse[2],LIGHT1_INTENSITY_ID,control_cb);
+    // sb->set_float_limits(0,1);
+
+    /****** A 'quit' button *****/
+    new GLUI_Button(glui, "Quit", 0, (GLUI_Update_CB)exit);
+
+
+    /**** Link windows to GLUI, and register idle callback ******/
+
+    glui->set_main_gfx_window(main_window);
 }
 
 // Read command line arguments
