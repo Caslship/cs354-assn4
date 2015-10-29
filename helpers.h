@@ -32,11 +32,6 @@ static string y = "";
 static string z = "";
 static string angle = "";
 
-int main_window;
-GLUI * glui;
-char * render_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
-int curr_render = 0;
-
 // Initalize GLUT and window properties
 void InitializeWindow(int& argc, char ** argv)
 {
@@ -70,7 +65,7 @@ void InitializeGUI(void)
     /*** Create the side subwindow ***/
     glui = GLUI_Master.create_glui_subwindow(main_window, GLUI_SUBWINDOW_RIGHT);
 
-    GLUI_Listbox * list = new GLUI_Listbox(glui, "Render:", &curr_render);
+    GLUI_Listbox * list = new GLUI_Listbox(glui, "Render: ", &curr_render);
     for(int i = 0; i < 6; i++ )
         list->add_item(i, render_list[i]);
 
@@ -124,12 +119,15 @@ void InitializeGUI(void)
     // sb->set_float_limits(0,1);
 
     /****** A 'quit' button *****/
+    new GLUI_StaticText( glui, "" );
+    
     new GLUI_Button(glui, "Quit", 0, (GLUI_Update_CB)exit);
 
 
     /**** Link windows to GLUI, and register idle callback ******/
 
     glui->set_main_gfx_window(main_window);
+    GLUI_Master.set_glutIdleFunc(Idle);
 }
 
 // Read command line arguments
@@ -558,80 +556,20 @@ bool ExecuteCommand(void)
             if (debug_flag)
                 cout << "---- Render mode: " << mode_type << endl;
 
-            // Set render mode
-            switch(mode_type)
+            bool found_mode = false;
+            for (int i = 0; i < 6; i++)
             {
-                case MODE_POINTS:
+                if (found_mode = (mode_type == render_map[i]))
                 {
-                    // Point mode
-                    show_normal_flag = NO_NORM;
-                    render_mode = GL_POINT;
-                    glDisable(GL_NORMALIZE);
-                    glDisable(GL_LIGHTING);
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+                    curr_render = i;
                     break;
                 }
-                case MODE_WIREFRAME:
-                {
-                    // Wireframe mode
-                    show_normal_flag = NO_NORM;
-                    render_mode = GL_LINE;
-                    glDisable(GL_NORMALIZE);
-                    glDisable(GL_LIGHTING);
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                    break;
-                }
-                case MODE_SOLID:
-                {
-                    // Solid mode
-                    show_normal_flag = NO_NORM;
-                    render_mode = GL_FILL;
-                    glDisable(GL_NORMALIZE);
-                    glDisable(GL_LIGHTING);
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                    break;
-                }
-                case MODE_SHADED:
-                {
-                    // Shaded mode
-                    show_normal_flag = NO_NORM;
-                    render_mode = GL_FILL;
-                    glDisable(GL_NORMALIZE);
-                    glEnable(GL_LIGHTING);
-                    glEnable(GL_LIGHT0);
-                    glEnable(GL_COLOR_MATERIAL);
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                    break;
-                }
-                case MODE_FACE_NORMS:
-                {
-                    // Face normals mode
-                    show_normal_flag = FACE_NORM;
-                    render_mode = GL_FILL;
-                    glEnable(GL_NORMALIZE);
-                    glEnable(GL_LIGHTING);
-                    glEnable(GL_LIGHT0);
-                    glEnable(GL_COLOR_MATERIAL);
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                    break;
-                }
-                case MODE_VERT_NORMS:
-                {
-                    // Vertex normals mode
-                    show_normal_flag = VERT_NORM;
-                    render_mode = GL_FILL;
-                    glEnable(GL_NORMALIZE);
-                    glEnable(GL_LIGHTING);
-                    glEnable(GL_LIGHT0);
-                    glEnable(GL_COLOR_MATERIAL);
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                    break;
-                }
-                default:
-                    return false;
             }
 
-            break;
+            if (found_mode)
+                break;
+            else
+                return false;
         }
         case CLI_DEBUG:
         {

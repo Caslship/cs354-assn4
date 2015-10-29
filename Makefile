@@ -14,7 +14,7 @@ ifeq ($(UNAME),Windows)
 	LIBS= -lglui -lopengl32 -lglu32 -lfreeglut
 endif
 
-CFLAGS= -std=c++11 -O2 -Wno-unused-result
+CFLAGS= -std=c++11 -O2
 PROD= obj_viewer
 
 INCLUDES= -I./include

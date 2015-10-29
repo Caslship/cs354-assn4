@@ -15,10 +15,6 @@ enum GLUI_WIDGET_ID
     LIGHT1_ENABLED_ID = 201,
     LIGHT0_INTENSITY_ID = 250,
     LIGHT1_INTENSITY_ID = 260,
-    ENABLE_ID = 300,
-    DISABLE_ID = 301,
-    SHOW_ID = 302,
-    HIDE_ID = 303
 };
 
 // Shading mode to consider when rendering Trimesh object

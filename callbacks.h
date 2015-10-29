@@ -9,6 +9,7 @@
 #define __CALLBACKS_H__
 
 #include <GL/glut.h>
+#include <GL/glui.h>
 #include <iostream>
 #include <string>
 #include <cctype>
@@ -26,8 +27,8 @@ using namespace std;
 #define PAN_SPEED 0.01
 
 /// Perspective variables
-static int win_height = 500, g_height = 500;
-static int win_width = 500, g_width = 500;
+static int win_height = 600, g_height = 600;
+static int win_width = 800, g_width = 800;
 static float g_near_plane = 0.01;
 static float g_far_plane = 10000.0;
 
@@ -67,6 +68,13 @@ extern void SetLighting(void);
 static string command = "";
 extern bool ExecuteCommand();
 
+/// GUI
+int main_window;
+GLUI * glui;
+char * render_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
+int curr_render = 2;
+MODE_ID render_map[] = { MODE_POINTS, MODE_WIREFRAME, MODE_SOLID, MODE_SHADED, MODE_FACE_NORMS, MODE_VERT_NORMS };
+
 // Render 
 void Display(void)
 {
@@ -86,6 +94,74 @@ void Display(void)
     // Set light
     SetLighting();
 
+    switch(render_map[curr_render])
+    {
+        case MODE_POINTS:
+        {
+            show_normal_flag = NO_NORM;
+            render_mode = GL_POINT;
+            glDisable(GL_NORMALIZE);
+            glDisable(GL_LIGHTING);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+            break;
+        }
+        case MODE_WIREFRAME:
+        {
+            show_normal_flag = NO_NORM;
+            render_mode = GL_LINE;
+            glDisable(GL_NORMALIZE);
+            glDisable(GL_LIGHTING);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            break;
+        }
+        case MODE_SOLID:
+        {
+            show_normal_flag = NO_NORM;
+            render_mode = GL_FILL;
+            glDisable(GL_NORMALIZE);
+            glDisable(GL_LIGHTING);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            break;
+        }
+        case MODE_SHADED:
+        {
+            show_normal_flag = NO_NORM;
+            render_mode = GL_FILL;
+            glDisable(GL_NORMALIZE);
+            glEnable(GL_LIGHTING);
+            glEnable(GL_LIGHT0);
+            glEnable(GL_COLOR_MATERIAL);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            break;
+        }
+        case MODE_FACE_NORMS:
+        {
+            show_normal_flag= FACE_NORM;
+            render_mode = GL_FILL;
+            glEnable(GL_NORMALIZE);
+            glEnable(GL_LIGHTING);
+            glEnable(GL_LIGHT0);
+            glEnable(GL_COLOR_MATERIAL);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            break;
+        }
+        case MODE_VERT_NORMS:
+        {
+            show_normal_flag = VERT_NORM;
+            render_mode = GL_FILL;
+            glEnable(GL_NORMALIZE);
+            glEnable(GL_LIGHTING);
+            glEnable(GL_LIGHT0);
+            glEnable(GL_COLOR_MATERIAL);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+
     // Render the model
     if (!model_stack.empty())
     {
@@ -103,10 +179,13 @@ void Display(void)
 // Update view port when resized
 void Reshape(int w, int h)
 {    
+    int tx, ty;
+    GLUI_Master.get_viewport_area(&tx, &ty, &w, &h);
+
     g_width = win_width = w;
     g_height = win_height = h;
 
-    glViewport(0, 0, w, h);
+    glViewport(tx, ty, w, h);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -211,6 +290,14 @@ void Keyboard(unsigned char key, int x, int y)
     }
 
     cout.flush();
+}
+
+void Idle(void)
+{
+    if (glutGetWindow() != main_window) 
+        glutSetWindow(main_window);
+
+    glutPostRedisplay();   
 }
 
 #endif
