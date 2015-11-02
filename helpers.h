@@ -59,9 +59,11 @@ void RegisterCallbacks(void)
     glutMotionFunc(MouseMotion);
 }
 
+string render_mode_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
 string root_node_list[] = { "Camera", "Light", "Object" };
 string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Light" };
 string transform_type_list[] = { "Scale", "Translate", "Rotate" };
+string transform_coord_type_list[] = { "World", "View" };
 
 void InitializeGUI(void)
 {
@@ -106,13 +108,21 @@ void InitializeGUI(void)
     // glui->add_statictext_to_panel(curr_node_panel, "");
     GLUI_Panel * transform_node_panel = glui->add_panel_to_panel(curr_node_panel, "Transformation");
     GLUI_Listbox * transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ");
-     for(int i = 0; i < 3; i++ )
+    for(int i = 0; i < 3; i++)
         transform_type_select->add_item(i, transform_type_list[i].c_str());
-    transform_type_select->set_alignment(GLUI_ALIGN_RIGHT);   
+    transform_type_select->set_alignment(GLUI_ALIGN_RIGHT);
+    GLUI_Listbox * transform_coord_type_select = glui->add_listbox_to_panel(transform_node_panel, "Coords ");
+    for (int i = 0; i < 2; i++)
+        transform_coord_type_select->add_item(i, transform_coord_type_list[i].c_str());
+    transform_coord_type_select->set_alignment(GLUI_ALIGN_RIGHT);
     GLUI_EditText * x_param = glui->add_edittext_to_panel(transform_node_panel, "X");
+    x_param->set_alignment(GLUI_ALIGN_RIGHT);
     GLUI_EditText * y_param = glui->add_edittext_to_panel(transform_node_panel, "Y");
+    y_param->set_alignment(GLUI_ALIGN_RIGHT);
     GLUI_EditText * z_param = glui->add_edittext_to_panel(transform_node_panel, "Z");
+    z_param->set_alignment(GLUI_ALIGN_RIGHT);
     GLUI_EditText * theta_param = glui->add_edittext_to_panel(transform_node_panel, "Theta");
+    theta_param->set_alignment(GLUI_ALIGN_RIGHT);
     transform_node_panel->set_alignment(GLUI_ALIGN_LEFT);
     glui->add_statictext_to_panel(curr_node_panel, "");
     GLUI_Button * update_node = glui->add_button_to_panel(curr_node_panel, "Update");
@@ -120,6 +130,7 @@ void InitializeGUI(void)
     GLUI_Button * delete_node = glui->add_button_to_panel(curr_node_panel, "Delete");
     delete_node->set_alignment(GLUI_ALIGN_LEFT);
     curr_node_panel->set_alignment(GLUI_ALIGN_LEFT);
+    curr_node_panel->disable();
 
 
     /**** Link windows to GLUI, and register idle callback ******/
@@ -557,7 +568,7 @@ bool ExecuteCommand(void)
             bool found_mode = false;
             for (int i = 0; i < 6; i++)
             {
-                if (found_mode = (mode_type == render_map[i]))
+                if ((found_mode = (mode_type == render_map[i])))
                 {
                     curr_render = i;
                     break;

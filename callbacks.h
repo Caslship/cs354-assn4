@@ -71,7 +71,6 @@ extern bool ExecuteCommand();
 /// GUI
 int main_window;
 GLUI * glui;
-string render_mode_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
 int curr_render = 2;
 MODE_ID render_map[] = { MODE_POINTS, MODE_WIREFRAME, MODE_SOLID, MODE_SHADED, MODE_FACE_NORMS, MODE_VERT_NORMS };
 
@@ -199,18 +198,18 @@ void Reshape(int w, int h)
 // Process mouse button clicks
 void MouseButton(int button, int state, int x, int y)
 {
-    if (orbit_camera_flag = ((state == GLUT_DOWN) && (button == GLUT_LEFT_BUTTON)))
+    if ((orbit_camera_flag = ((state == GLUT_DOWN) && (button == GLUT_LEFT_BUTTON))))
     {
         // Orbit
         old_orbit_x = x;
         old_orbit_y = y;
     }
-    else if (zoom_camera_flag = ((state == GLUT_DOWN) && (button == GLUT_RIGHT_BUTTON)))
+    else if ((zoom_camera_flag = ((state == GLUT_DOWN) && (button == GLUT_RIGHT_BUTTON))))
     {
         // Zoom
         old_zoom_level = y - (ZOOM_SPEED * zoom_level);
     }
-    else if (pan_camera_flag = ((state == GLUT_DOWN) && (button == GLUT_MIDDLE_BUTTON)))
+    else if ((pan_camera_flag = ((state == GLUT_DOWN) && (button == GLUT_MIDDLE_BUTTON))))
     {
         // Pan
         old_pan_x = x;

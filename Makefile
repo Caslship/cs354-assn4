@@ -7,7 +7,7 @@ endif
 
 ifeq ($(UNAME),Linux)
 	CC= clang++
-	LIBS= -L./lib -L/usr/lib/nvidia-340 -lXext -lX11 -lglui -lGL -lGLU -lglut
+	LIBS= -L./lib -L/usr/lib/nvidia-340-updates -L/usr/lib/nvidia-340 -lXext -lX11 -lglui -lGL -lGLU -lglut
 endif
 ifeq ($(UNAME),Windows)
 	CC= g++
