@@ -71,7 +71,7 @@ extern bool ExecuteCommand();
 /// GUI
 int main_window;
 GLUI * glui;
-char * render_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
+string render_mode_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
 int curr_render = 2;
 MODE_ID render_map[] = { MODE_POINTS, MODE_WIREFRAME, MODE_SOLID, MODE_SHADED, MODE_FACE_NORMS, MODE_VERT_NORMS };
 

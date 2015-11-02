@@ -38,7 +38,7 @@ void InitializeWindow(int& argc, char ** argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(win_width, win_height);
-    main_window = glutCreateWindow("Jason Palacios - OBJ Viewer");
+    main_window = glutCreateWindow("Jason Palacios - Scene Graph Viewer");
 }
 
 // Initial settings for OpenGL
@@ -55,73 +55,71 @@ void RegisterCallbacks(void)
     glutDisplayFunc(Display);
     GLUI_Master.set_glutReshapeFunc(Reshape);  
     GLUI_Master.set_glutKeyboardFunc(Keyboard);
-    GLUI_Master.set_glutSpecialFunc(NULL);
     GLUI_Master.set_glutMouseFunc(MouseButton);
     glutMotionFunc(MouseMotion);
 }
 
+string root_node_list[] = { "Camera", "Light", "Object" };
+string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Light" };
+string transform_type_list[] = { "Scale", "Translate", "Rotate" };
+
 void InitializeGUI(void)
 {
-    /*** Create the side subwindow ***/
-    glui = GLUI_Master.create_glui_subwindow(main_window, GLUI_SUBWINDOW_RIGHT);
+    glui = GLUI_Master.create_glui_subwindow(main_window, GLUI_SUBWINDOW_LEFT);
 
-    GLUI_Listbox * list = new GLUI_Listbox(glui, "Render: ", &curr_render);
+    // Scene graph panel
+    GLUI_Panel * scene_graph_panel = glui->add_panel("Edit Scene Graph");
+    GLUI_Panel * select_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Selection");
+    GLUI_Listbox * node_select = glui->add_listbox_to_panel(select_node_panel, "Child ");
+    for (int i = 0; i < 3; i++)
+        node_select->add_item(i, root_node_list[i].c_str());
+    glui->add_statictext_to_panel(select_node_panel, "");
+    GLUI_Button * select_child_node = glui->add_button_to_panel(select_node_panel, "Select Child");
+    select_child_node->set_alignment(GLUI_ALIGN_LEFT);
+    GLUI_Button * select_parent_node = glui->add_button_to_panel(select_node_panel, "Select Parent");
+    select_parent_node->set_alignment(GLUI_ALIGN_LEFT);
+    select_node_panel->set_alignment(GLUI_ALIGN_LEFT);
+    // glui->add_statictext_to_panel(scene_graph_panel, "");
+    GLUI_Panel * add_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Addition");
+    GLUI_Listbox * node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ");
+    for (int i = 0; i < 5; i++)
+        node_type_select->add_item(i, node_type_list[i].c_str());
+    glui->add_statictext_to_panel(add_node_panel, "");
+    GLUI_Button * add_child_node = glui->add_button_to_panel(add_node_panel, "Add Child");
+    add_child_node->set_alignment(GLUI_ALIGN_LEFT);
+    GLUI_Button * add_parent_node = glui->add_button_to_panel(add_node_panel, "Add Parent");
+    add_parent_node->set_alignment(GLUI_ALIGN_LEFT);
+    add_node_panel->set_alignment(GLUI_ALIGN_LEFT);
+    scene_graph_panel->set_alignment(GLUI_ALIGN_LEFT);
+
+    // Current node panel
+    GLUI_Panel * curr_node_panel = glui->add_panel("Edit Current Node");
+    GLUI_Panel * attr_node_panel = glui->add_panel_to_panel(curr_node_panel, "Attribute");
+    GLUI_Listbox * render_mode_select = glui->add_listbox_to_panel(attr_node_panel, "Render ", &curr_render);
     for(int i = 0; i < 6; i++ )
-        list->add_item(i, render_list[i]);
-
-    // obj_panel = new GLUI_Rollout(glui, "Properties", false );
-
-    /***** Control for object params *****/
-    // GLUI_Spinner *scale_spinner = 
-    // new GLUI_Spinner( obj_panel, "Scale:", &scale);
-    // scale_spinner->set_float_limits( .2f, 4.0 );
-    // scale_spinner->set_alignment( GLUI_ALIGN_RIGHT );
-
-
-    /******** Add some controls for lights ********/
-    // GLUI_Rollout *roll_lights = new GLUI_Rollout(glui, "Lights", false );
-
-    // GLUI_Panel *light0 = new GLUI_Panel( roll_lights, "Light 1" );
-    // GLUI_Panel *light1 = new GLUI_Panel( roll_lights, "Light 2" );
-
-    // new GLUI_Checkbox( light0, "Enabled", &light0_enabled,
-    //     LIGHT0_ENABLED_ID, control_cb );
-    // light0_spinner = 
-    // new GLUI_Spinner( light0, "Intensity:", 
-    //     &light0_intensity, LIGHT0_INTENSITY_ID,
-    //     control_cb );
-    // light0_spinner->set_float_limits( 0.0, 1.0 );
-    // GLUI_Scrollbar *sb;
-    // sb = new GLUI_Scrollbar( light0, "Red",GLUI_SCROLL_HORIZONTAL,
-    //     &light0_diffuse[0],LIGHT0_INTENSITY_ID,control_cb);
-    // sb->set_float_limits(0,1);
-    // sb = new GLUI_Scrollbar( light0, "Green",GLUI_SCROLL_HORIZONTAL,
-    //     &light0_diffuse[1],LIGHT0_INTENSITY_ID,control_cb);
-    // sb->set_float_limits(0,1);
-    // sb = new GLUI_Scrollbar( light0, "Blue",GLUI_SCROLL_HORIZONTAL,
-    //     &light0_diffuse[2],LIGHT0_INTENSITY_ID,control_cb);
-    // sb->set_float_limits(0,1);
-    // new GLUI_Checkbox( light1, "Enabled", &light1_enabled,
-    //     LIGHT1_ENABLED_ID, control_cb );
-    // light1_spinner = 
-    // new GLUI_Spinner( light1, "Intensity:",
-    //     &light1_intensity, LIGHT1_INTENSITY_ID,
-    //     control_cb );
-    // light1_spinner->set_float_limits( 0.0, 1.0 );
-    // sb = new GLUI_Scrollbar( light1, "Red",GLUI_SCROLL_HORIZONTAL,
-    //     &light1_diffuse[0],LIGHT1_INTENSITY_ID,control_cb);
-    // sb->set_float_limits(0,1);
-    // sb = new GLUI_Scrollbar( light1, "Green",GLUI_SCROLL_HORIZONTAL,
-    //     &light1_diffuse[1],LIGHT1_INTENSITY_ID,control_cb);
-    // sb->set_float_limits(0,1);
-    // sb = new GLUI_Scrollbar( light1, "Blue",GLUI_SCROLL_HORIZONTAL,
-    //     &light1_diffuse[2],LIGHT1_INTENSITY_ID,control_cb);
-    // sb->set_float_limits(0,1);
-
-    /****** A 'quit' button *****/
-    new GLUI_StaticText( glui, "" );
-    
-    new GLUI_Button(glui, "Quit", 0, (GLUI_Update_CB)exit);
+        render_mode_select->add_item(i, render_mode_list[i].c_str());
+    attr_node_panel->set_alignment(GLUI_ALIGN_LEFT);
+    // glui->add_statictext_to_panel(curr_node_panel, "");
+    GLUI_Panel * geom_node_panel = glui->add_panel_to_panel(curr_node_panel, "Geometry");
+    GLUI_EditText * geometry_path = glui->add_edittext_to_panel(geom_node_panel, "Obj");
+    geom_node_panel->set_alignment(GLUI_ALIGN_LEFT);
+    // glui->add_statictext_to_panel(curr_node_panel, "");
+    GLUI_Panel * transform_node_panel = glui->add_panel_to_panel(curr_node_panel, "Transformation");
+    GLUI_Listbox * transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ");
+     for(int i = 0; i < 3; i++ )
+        transform_type_select->add_item(i, transform_type_list[i].c_str());
+    transform_type_select->set_alignment(GLUI_ALIGN_RIGHT);   
+    GLUI_EditText * x_param = glui->add_edittext_to_panel(transform_node_panel, "X");
+    GLUI_EditText * y_param = glui->add_edittext_to_panel(transform_node_panel, "Y");
+    GLUI_EditText * z_param = glui->add_edittext_to_panel(transform_node_panel, "Z");
+    GLUI_EditText * theta_param = glui->add_edittext_to_panel(transform_node_panel, "Theta");
+    transform_node_panel->set_alignment(GLUI_ALIGN_LEFT);
+    glui->add_statictext_to_panel(curr_node_panel, "");
+    GLUI_Button * update_node = glui->add_button_to_panel(curr_node_panel, "Update");
+    update_node->set_alignment(GLUI_ALIGN_LEFT);
+    GLUI_Button * delete_node = glui->add_button_to_panel(curr_node_panel, "Delete");
+    delete_node->set_alignment(GLUI_ALIGN_LEFT);
+    curr_node_panel->set_alignment(GLUI_ALIGN_LEFT);
 
 
     /**** Link windows to GLUI, and register idle callback ******/
@@ -614,8 +612,8 @@ void SetCameraView(void)
         glTranslatef(model_center.pos[0], model_center.pos[1], model_center.pos[2] - zoom_level);
 
         // Orbit
-        glRotatef(orbit_theta, 0.0, 1.0, 0.0);
         glRotatef(orbit_phi, 1.0, 0.0, 0.0);
+        glRotatef(orbit_theta, 0.0, 1.0, 0.0);
         glRotatef(orbit_delta, 0.0, 0.0, 1.0);
         glTranslatef(-model_center.pos[0], -model_center.pos[1], -model_center.pos[2]);
     }
@@ -629,8 +627,8 @@ void SetCameraView(void)
         glTranslatef(center[0], center[1], center[2] - zoom_level);
 
         // Orbit
-        glRotatef(orbit_theta, 0.0, 1.0, 0.0);
         glRotatef(orbit_phi, 1.0, 0.0, 0.0);
+        glRotatef(orbit_theta, 0.0, 1.0, 0.0);
         glTranslatef(-center[0], -center[1], -center[2]);
     }
 }
