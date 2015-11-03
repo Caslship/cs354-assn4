@@ -35,9 +35,6 @@ static float g_far_plane = 10000.0;
 /// Scene graph
 static SceneGraphContainer scenegraph;
 
-/// Transformations
-static TRANS_FLAG_ID trans_flag = WORLD_COORDS;
-
 /// Camera (zoom)
 static float old_zoom_level;
 static float zoom_level = 50.0 * VIEWING_DISTANCE_MIN;
@@ -95,13 +92,14 @@ GLUI_Button * delete_node;
 
 int child_node_index = 0;
 int node_type_index = 0;
+int transform_type_index = 0;
+int transform_coord_type_index = 0;
 
 string render_mode_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
 string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Light" };
 string transform_type_list[] = { "Scale", "Translate", "Rotate" };
 string transform_coord_type_list[] = { "World", "View" };
 
-MODE_ID render_map[] = { MODE_POINTS, MODE_WIREFRAME, MODE_SOLID, MODE_SHADED, MODE_FACE_NORMS, MODE_VERT_NORMS };
 extern void UpdateGUI(int);
 
 // Render 
@@ -216,23 +214,6 @@ void Keyboard(unsigned char key, int x, int y)
         // Escape (quit)
         exit(EXIT_SUCCESS);
     }
-
-    // Ignore backspaces
-    if (key != 8)
-    {
-        if (key == 13)
-        {
-            ExecuteCommand();
-
-            command.clear();
-
-            glutPostRedisplay();
-        }
-        else
-        {
-            command += key;
-        }
-    }
 }
 
 void Idle(void)
@@ -248,10 +229,6 @@ void Control(int control_id)
 
     switch(control_id)
     {
-        case CHILD_NODE_LB_ID:
-        {
-            break;
-        }
         case CHILD_NODE_SELECT_B_ID:
         {
             Node * child_node = curr_node->getChild(child_node_index);
@@ -268,10 +245,6 @@ void Control(int control_id)
             if (parent_node != NULL)
                 scenegraph.setCurrentNode(parent_node);
 
-            break;
-        }
-        case NODE_TYPE_LB_ID:
-        {
             break;
         }
         case CHILD_NODE_ADD_B_ID:
@@ -347,10 +320,11 @@ void Control(int control_id)
         {
             if (curr_node->getNodeType() == "Transform")
             {
-                std::cout << x_param->get_float_val() << std::endl;
-                std::cout << y_param->get_float_val() << std::endl;
-                std::cout << z_param->get_float_val() << std::endl;
-                std::cout << theta_param->get_float_val() << std::endl;
+                string transform_type = transform_type_list[transform_type_index];
+                float xyz[3] = { x_param->get_float_val(), y_param->get_float_val(), z_param->get_float_val() };
+                float theta = theta_param->get_float_val();
+
+                ((TransformNode*)curr_node)->setParams(transform_type, xyz, theta);
             }
             break;
         }

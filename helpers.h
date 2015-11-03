@@ -69,7 +69,7 @@ void InitializeGUI(void)
         select_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Selection");
             
             // Child selection listbox
-            child_node_select = glui->add_listbox_to_panel(select_node_panel, "Child ", &child_node_index, CHILD_NODE_LB_ID, Control);
+            child_node_select = glui->add_listbox_to_panel(select_node_panel, "Child ", &child_node_index);
 
             glui->add_separator_to_panel(select_node_panel);
 
@@ -81,7 +81,7 @@ void InitializeGUI(void)
         add_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Addition");
             
             // Node type selection listbox
-            node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ", &node_type_index, NODE_TYPE_LB_ID, Control);
+            node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ", &node_type_index);
             for (int i = 0; i < 5; i++)
                 node_type_select->add_item(i, node_type_list[i].c_str());
 
@@ -114,22 +114,22 @@ void InitializeGUI(void)
         transform_node_panel = glui->add_panel_to_panel(curr_node_panel, "Transformation");
 
             // Transform type selection listbox
-            transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ");
+            transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ", &transform_type_index);
             for(int i = 0; i < 3; i++)
                 transform_type_select->add_item(i, transform_type_list[i].c_str());
 
             // Coordinate type selection listbox
-            transform_coord_type_select = glui->add_listbox_to_panel(transform_node_panel, "Coords ");
+            transform_coord_type_select = glui->add_listbox_to_panel(transform_node_panel, "Coords ", &transform_coord_type_index);
             for (int i = 0; i < 2; i++)
                 transform_coord_type_select->add_item(i, transform_coord_type_list[i].c_str());
 
             glui->add_separator_to_panel(transform_node_panel);
 
             // Transformation parameter textboxes
-            x_param = glui->add_edittext_to_panel(transform_node_panel, "X");
-            y_param = glui->add_edittext_to_panel(transform_node_panel, "Y");
-            z_param = glui->add_edittext_to_panel(transform_node_panel, "Z");
-            theta_param = glui->add_edittext_to_panel(transform_node_panel, "Theta");
+            x_param = glui->add_edittext_to_panel(transform_node_panel, "X", GLUI_EDITTEXT_FLOAT);
+            y_param = glui->add_edittext_to_panel(transform_node_panel, "Y", GLUI_EDITTEXT_FLOAT);
+            z_param = glui->add_edittext_to_panel(transform_node_panel, "Z", GLUI_EDITTEXT_FLOAT);
+            theta_param = glui->add_edittext_to_panel(transform_node_panel, "Theta", GLUI_EDITTEXT_FLOAT);
 
         // Apply node modification buttons
         update_node = glui->add_button_to_panel(curr_node_panel, "Update", CURR_NODE_UPDATE_B_ID, Control);
@@ -215,311 +215,20 @@ void UpdateGUI(int old_children_vec_size)
         transform_node_panel->disable();
     else
     {
-        if (((TransformNode *)curr_node)->getTransformType() != ROTATE)
+        x_param->set_float_val(((TransformNode *)curr_node)->getX());
+        y_param->set_float_val(((TransformNode *)curr_node)->getY());
+        z_param->set_float_val(((TransformNode *)curr_node)->getZ());
+        theta_param->set_float_val(((TransformNode *)curr_node)->getTheta());
+
+        if (((TransformNode *)curr_node)->getTransformType() != "Rotate")
             theta_param->disable();
     }
 
-    if (curr_node_type == "Camera")
+    if (curr_node_type == "Camera" || curr_node == root_node)
         delete_node->disable();
 
-    if (curr_node_type == "Light")
+    if (curr_node_type == "Light" || curr_node == root_node)
         update_node->disable();
-}
-
-// Executes a command and the return value indicates success or failure
-bool ExecuteCommand(void)
-{
-    int pos = 0;
-    int command_length = command.length();
-
-    // Skip spaces but make sure not to hit the end of the string
-    while (pos < command_length && command[pos] ==  ' ')
-        pos++;
-
-    if (pos == command_length)
-        return false;
-
-    // Read command type and update position
-    char command_type = command[pos++];
-
-    // Don't want anybody excluding spaces
-    if (pos != command_length && command[pos] != ' ')
-        return false;
-
-    command_type = toupper(command_type);
-
-    switch(command_type)
-    {
-        case CLI_LOAD:
-        {
-            // Skip spaces but make sure not to hit the end of the string 
-            while (pos < command_length && command[pos] ==  ' ')
-                pos++;
-
-            if (pos == command_length)
-                return false;
-
-            // Read file name and update position
-            file_name = "";
-            while (pos < command_length && command[pos] != ' ')
-            {
-                file_name += command[pos++];
-            }
-
-            // Append .obj extension to the string if needed
-            int ext_pos = file_name.find(".obj");
-            if (ext_pos == string::npos || ext_pos != file_name.length() - 4)
-                file_name += ".obj";
-
-            // Load object file into Trimesh object
-            Trimesh model;
-
-            // Fail if the object failed to load
-            if (!model_loader.loadOBJ(file_name.c_str(), &model))
-                return false;
-
-            // Adjust camera for new object
-            look_at_pos = model.getCenter();
-            zoom_level = model.getBoundingLength();
-            zoom_level = (zoom_level < VIEWING_DISTANCE_MIN ? VIEWING_DISTANCE_MIN : zoom_level);
-            orbit_theta = orbit_phi = orbit_delta = pan_x = pan_y = 0.0;
-            g_width = win_width;
-            g_height = win_height;
-
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            gluPerspective(45.0, (float)g_width / (float)g_height, g_near_plane, g_far_plane);
-
-            glMatrixMode(GL_MODELVIEW);
-
-            break;
-        }
-        case CLI_DELETE:
-        {
-            if (false)
-            {
-                // Reset camera for old object
-                if (false)
-                {
-                    Trimesh model;
-
-                    look_at_pos = model.getCenter();
-                    zoom_level = model.getBoundingLength();
-                    zoom_level = (zoom_level < VIEWING_DISTANCE_MIN ? VIEWING_DISTANCE_MIN : zoom_level);
-                    orbit_theta = orbit_phi = orbit_delta = pan_x = pan_y = 0.0;
-                    g_width = win_width;
-                    g_height = win_height;
-
-                    glMatrixMode(GL_PROJECTION);
-                    glLoadIdentity();
-                    gluPerspective(45.0, (float)g_width / (float)g_height, g_near_plane, g_far_plane);
-
-                    glMatrixMode(GL_MODELVIEW);
-                }
-            }
-
-            break;
-        }
-        case CLI_IDENTITY:
-        {
-            if (false)
-            {
-                if (trans_flag == WORLD_COORDS)
-                {
-                    // Clear transformations for object
-                }
-                else if (trans_flag == VIEW_COORDS)
-                {
-                    Trimesh model;
-
-                    // Clear transformations for view
-                    look_at_pos = model.getCenter();
-                    zoom_level = model.getBoundingLength();
-                    zoom_level = (zoom_level < VIEWING_DISTANCE_MIN ? VIEWING_DISTANCE_MIN : zoom_level);
-                    orbit_theta = orbit_phi = orbit_delta = pan_x = pan_y = 0.0;
-                    g_width = win_width;
-                    g_height = win_height;
-
-                    glMatrixMode(GL_PROJECTION);
-                    glLoadIdentity();
-                    gluPerspective(45.0, (float)g_width / (float)g_height, g_near_plane, g_far_plane);
-
-                    glMatrixMode(GL_MODELVIEW);
-                }
-            }
-
-            break;
-        }
-        case CLI_TRANSLATE:
-        case CLI_SCALE:
-        case CLI_ROTATE:
-        {
-            float ang = 0.0;
-            float xyz[3] = {};
-
-            // Read angle first if we have a rotate command
-            if (command_type == CLI_ROTATE)
-            {
-                // Skip spaces but make sure not to hit the end of the string 
-                while (pos < command_length && command[pos] ==  ' ')
-                    pos++;
-
-                if (pos == command_length)
-                    return false;
-
-                // Read ANGLE and update position
-                angle = "";
-                while (pos < command_length && command[pos] != ' ')
-                {
-                    angle += command[pos++];
-                }             
-
-                // Parse ANG from string
-                ang = atof(angle.c_str());
-            }
-
-            // Skip spaces but make sure not to hit the end of the string 
-            while (pos < command_length && command[pos] ==  ' ')
-                pos++;
-
-            if (pos == command_length)
-                return false;
-
-            // Read X and update position
-            x = "";
-            while (pos < command_length && command[pos] != ' ')
-            {
-                x += command[pos++];
-            }
-
-            // Skip spaces but make sure not to hit the end of the string 
-            while (pos < command_length && command[pos] ==  ' ')
-                pos++;
-
-            if (pos == command_length)
-                return false;
-
-            // Read Y and update position
-            y = "";
-            while (pos < command_length && command[pos] != ' ')
-            {
-                y += command[pos++];
-            }
-
-            // Skip spaces but make sure not to hit the end of the string 
-            while (pos < command_length && command[pos] ==  ' ')
-                pos++;
-
-            if (pos == command_length)
-                return false;
-
-            // Read Z and update position
-            z = "";
-            while (pos < command_length && command[pos] != ' ')
-            {
-                z += command[pos++];
-            }
-
-            // Parse XYZ from string
-            xyz[0] = atof(x.c_str());
-            xyz[1] = atof(y.c_str());
-            xyz[2] = atof(z.c_str());
-
-            if (trans_flag == WORLD_COORDS)
-            {
-            }
-            else if (trans_flag == VIEW_COORDS)
-            {
-                // Add transformation to view
-                if (command_type == CLI_TRANSLATE)
-                {
-                    // Pan
-                    pan_x += xyz[0];
-                    pan_y += xyz[1];
-                    zoom_level += -xyz[2];
-                }
-                else if (command_type == CLI_SCALE)
-                {
-                    // Zoom
-                    // Don't want a divide by zero or objects disappearing
-                    if ((xyz[0] == 0.0) || (xyz[1] == 0.0) || (xyz[2] == 0.0))
-                        return false;
-
-                    zoom_level *= (xyz[2] * xyz[1] * xyz[0]);
-                    g_width *= xyz[0];
-                    g_height *= xyz[1];
-
-                    glMatrixMode(GL_PROJECTION);
-                    glLoadIdentity();
-                    gluPerspective(45.0, (float)g_width / (float)g_height, g_near_plane, g_far_plane);
-
-                    glMatrixMode(GL_MODELVIEW);
-                }
-                else if (command_type == CLI_ROTATE)
-                {
-                    // Orbit
-                    orbit_phi += xyz[0] * ang;
-                    orbit_theta -= xyz[1] * ang;
-                    orbit_delta += xyz[2] * ang;
-                }
-            }
-
-            break;
-        }
-        case CLI_VIEW:
-        case CLI_WORLD:
-        {
-            // Set coordinate system to use
-            trans_flag = (command_type == CLI_VIEW ? VIEW_COORDS : WORLD_COORDS);
-            
-            break;
-        }
-        case CLI_MODE:
-        {
-            // Skip spaces but make sure not to hit the end of the string
-            while (pos < command_length && command[pos] ==  ' ')
-                pos++;
-
-            if (pos == command_length)
-                return false;
-
-            // Read mode type
-            char mode_type = command[pos++];
-
-            // Don't want anybody trying to trick up the CLI
-            if (pos < command_length && command[pos] != ' ')
-            {
-                return false;
-            }
-
-            mode_type = toupper(mode_type);
-
-            bool found_mode = false;
-            for (int i = 0; i < 6; i++)
-            {
-                if ((found_mode = (mode_type == render_map[i])))
-                {
-                    //curr_render = i;
-                    break;
-                }
-            }
-
-            if (found_mode)
-                break;
-            else
-                return false;
-        }
-        case CLI_EXIT:
-        {
-            // Quit program
-            exit(EXIT_SUCCESS);
-            break;
-        }
-        default:
-            return false;
-    }
-
-    return true;
 }
 
 // Set camera view depending current zoom, pan, and orbit settings

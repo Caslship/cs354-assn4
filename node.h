@@ -222,44 +222,83 @@ void GeometryNode::traverseNode(glm::mat4 transform)
 class TransformNode : public Node
 {
 private:
-    TRANS_ID transformation_type;
+    std::string transform_type;
     float xyz[3];
-    float angle;
+    float theta;
 
 public:
-    TransformNode(void) : Node(NULL, "Transform") {}
-    TransformNode(Node * parent) : transformation_type(INVALID), Node(parent, "Transform") {}
-    TRANS_ID getTransformType(void);
+    TransformNode(void);
+    TransformNode(Node * parent);
+    std::string getTransformType(void);
+    float getX(void);
+    float getY(void);
+    float getZ(void);
+    float getTheta(void);
+    void setParams(std::string transform_type, float xyz[], float theta = 0.0);
     void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
 
-TRANS_ID TransformNode::getTransformType(void)
+TransformNode::TransformNode(void) : Node(NULL, "Transform")
 {
-    return transformation_type;
+    float xyz[] = { 1.0, 1.0, 1.0 };
+    setParams("Scale", xyz, 0.0);
+}
+
+TransformNode::TransformNode(Node * parent) : Node(parent, "Transform")
+{
+    float xyz[] = { 1.0, 1.0, 1.0 };
+    setParams("Scale", xyz, 0.0);
+}
+
+std::string TransformNode::getTransformType(void)
+{
+    return transform_type;
+}
+
+float TransformNode::getX(void)
+{
+    return xyz[0];
+}
+
+float TransformNode::getY(void)
+{
+    return xyz[1];
+}
+
+float TransformNode::getZ(void)
+{
+    return xyz[2];
+}
+
+float TransformNode::getTheta(void)
+{
+    return theta;
+}
+
+void TransformNode::setParams(std::string transform_type, float xyz[], float theta)
+{
+    this->transform_type = transform_type;
+    for (int i = 0; i < 3; i++)
+        this->xyz[i] = xyz[i];
+    this->theta = theta;
 }
 
 void TransformNode::traverseNode(glm::mat4 transform)
 {
-    switch(transformation_type)
+    if (transform_type == "Scale")
     {
-        case SCALE:
-        {
-            glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(xyz[0], xyz[1], xyz[2]));
-            transform = scale * transform;
-            break;
-        }
-        case TRANSLATE:
-        {
-            glm::mat4 translate = glm::translate(glm::mat4(1.0), glm::vec3(xyz[0], xyz[1], xyz[2]));
-            transform = translate * transform;
-            break;
-        }
-        case ROTATE:
-        {
-            glm::mat4 rotate = glm::rotate(glm::mat4(1.0), angle, glm::vec3(xyz[0], xyz[1], xyz[2]));
-            transform = rotate * transform;
-            break;
-        }
+        glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(xyz[0], xyz[1], xyz[2]));
+        transform = scale * transform;
+    }
+    else if (transform_type == "Translate")
+    {
+        glm::mat4 translate = glm::translate(glm::mat4(1.0), glm::vec3(xyz[0], xyz[1], xyz[2]));
+        transform = translate * transform;
+    }
+    else if (transform_type == "Rotate")
+    {
+        glm::mat4 rotate = glm::rotate(glm::mat4(1.0), theta, glm::vec3(xyz[0], xyz[1], xyz[2]));
+        transform = rotate * transform;
     }
 
     Node::traverseNode(transform);
@@ -268,73 +307,70 @@ void TransformNode::traverseNode(glm::mat4 transform)
 class AttributeNode : public Node
 {
 private:
-    MODE_ID render_mode;
+    std::string render_type;
 public:
-    AttributeNode(void) : Node(NULL, "Attribute") {}
-    AttributeNode(Node * parent) : Node(parent, "Attribute") {}
+    AttributeNode(void) : render_type("Solid"), Node(NULL, "Attribute") {}
+    AttributeNode(Node * parent) : render_type("Solid"), Node(parent, "Attribute") {}
+    void setParams(std::string render_type);
     void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
+
+void AttributeNode::setParams(std::string render_type)
+{
+    this->render_type = render_type;
+}
 
 void AttributeNode::traverseNode(glm::mat4 transform)
 {
     glPushAttrib(GL_POLYGON_BIT);
 
-        switch(render_mode)
+        if (render_type == "Points")
         {
-            case MODE_POINTS:
-            {
-                // Point mode
-                glDisable(GL_NORMALIZE);
-                glDisable(GL_LIGHTING);
-                glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-                break;
-            }
-            case MODE_WIREFRAME:
-            {
-                // Wireframe mode
-                glDisable(GL_NORMALIZE);
-                glDisable(GL_LIGHTING);
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                break;
-            }
-            case MODE_SOLID:
-            {
-                // Solid mode
-                glDisable(GL_NORMALIZE);
-                glDisable(GL_LIGHTING);
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                break;
-            }
-            case MODE_SHADED:
-            {
-                // Shaded mode
-                glDisable(GL_NORMALIZE);
-                glEnable(GL_LIGHTING);
-                glEnable(GL_LIGHT0);
-                glEnable(GL_COLOR_MATERIAL);
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                break;
-            }
-            case MODE_FACE_NORMS:
-            {
-                // Face normals mode
-                glEnable(GL_NORMALIZE);
-                glEnable(GL_LIGHTING);
-                glEnable(GL_LIGHT0);
-                glEnable(GL_COLOR_MATERIAL);
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                break;
-            }
-            case MODE_VERT_NORMS:
-            {
-                // Vertex normals mode
-                glEnable(GL_NORMALIZE);
-                glEnable(GL_LIGHTING);
-                glEnable(GL_LIGHT0);
-                glEnable(GL_COLOR_MATERIAL);
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                break;
-            }
+            // Point mode
+            glDisable(GL_NORMALIZE);
+            glDisable(GL_LIGHTING);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+        }
+        else if (render_type == "Wireframe")
+        {
+            // Wireframe mode
+            glDisable(GL_NORMALIZE);
+            glDisable(GL_LIGHTING);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        else if (render_type == "Solid")
+        {
+            // Solid mode
+            glDisable(GL_NORMALIZE);
+            glDisable(GL_LIGHTING);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+        else if (render_type == "Shaded")
+        {
+            // Shaded mode
+            glDisable(GL_NORMALIZE);
+            glEnable(GL_LIGHTING);
+            glEnable(GL_LIGHT0);
+            glEnable(GL_COLOR_MATERIAL);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+        else if (render_type == "Face Normals")
+        {
+            // Face normals mode
+            glEnable(GL_NORMALIZE);
+            glEnable(GL_LIGHTING);
+            glEnable(GL_LIGHT0);
+            glEnable(GL_COLOR_MATERIAL);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+        else if (render_type == "Vertex Normals")
+        {
+            // Vertex normals mode
+            glEnable(GL_NORMALIZE);
+            glEnable(GL_LIGHTING);
+            glEnable(GL_LIGHT0);
+            glEnable(GL_COLOR_MATERIAL);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
         Node::traverseNode(transform);
@@ -345,7 +381,7 @@ void AttributeNode::traverseNode(glm::mat4 transform)
 class LightNode : public Node
 {
 private:
-    LIGHT_ID type;
+    std::string light_type;
 public:
     LightNode(void) : Node(NULL, "Light") {}
     LightNode(Node * parent) : Node(parent, "Light") {}
@@ -358,9 +394,6 @@ void LightNode::traverseNode(glm::mat4 transform)
     glm::vec4 pos(0.0, 0.0, 0.0, 1.0);
     // Have transformation matrix define where it should be placed
     pos = transform * pos;
-
-    // // Set light
-    // glEnable(GL_LIGHTING);
 }
 
 class CameraNode : public Node

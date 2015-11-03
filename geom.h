@@ -107,7 +107,7 @@ public:
     vertex_t getCenter(void);
     void addVertex(float[]);
     void addFace(int[]);
-    void render(NORM_FLAG_ID, GLenum);
+    void render(void);
     Trimesh& operator=(const Trimesh&);
 };
 
@@ -287,7 +287,7 @@ void Trimesh::addFace(int vert_ids[])
 }
 
 // Use OpenGL to render the object and possibly render face or vertex normals
-void Trimesh::render(NORM_FLAG_ID show_norm_flag = NO_NORM, GLenum render_mode = GL_FILL)
+void Trimesh::render(void)
 {
     // First calculate all necessary information for the object (center, normals, etc.)
     _constructObject();
@@ -299,20 +299,20 @@ void Trimesh::render(NORM_FLAG_ID show_norm_flag = NO_NORM, GLenum render_mode =
     // Loop through and draw each triangle
     glBegin(GL_TRIANGLES);
 
-        // Unless we don't have norms specified, set all vertex colors to white
+        // Set all vertex colors to white
         glColor4f(1.0, 1.0, 1.0, 1.0);
 
         for (int i = 0; i < tri_vec_size; i++)
         {
-            // Set normal for triangle if specified by show_norm_flag
-            if (show_norm_flag == FACE_NORM)
-                glNormal3fv(_triangles[i].norm);
+            // // Set normal for triangle if specified by show_norm_flag
+            // if (show_norm_flag == FACE_NORM)
+            //     glNormal3fv(_triangles[i].norm);
 
             for (int j = 0; j < 3; j++)
             {
                 // Set normal for vertex if specified by show_norm_flag
-                if (show_norm_flag == VERT_NORM)
-                    glNormal3fv(_vertices[_triangles[i].vert_ids[j]].norm);
+                // if (show_norm_flag == VERT_NORM)
+                //     glNormal3fv(_vertices[_triangles[i].vert_ids[j]].norm);
 
                 // Submit vertex position
                 glVertex3fv(_vertices[_triangles[i].vert_ids[j]].pos);
@@ -322,76 +322,76 @@ void Trimesh::render(NORM_FLAG_ID show_norm_flag = NO_NORM, GLenum render_mode =
 
     glEnd();
 
-    if (show_norm_flag != NO_NORM)
-    {
-        // We want the vector lines to be approximately 1.5% the length of the bounding cube
-        float line_length = getBoundingLength() * 0.015;
+    // if (show_norm_flag != NO_NORM)
+    // {
+    //     // We want the vector lines to be approximately 1.5% the length of the bounding cube
+    //     float line_length = getBoundingLength() * 0.015;
 
-        glBegin(GL_LINES);
+    //     glBegin(GL_LINES);
 
-            // Color normal vectors red
-            glColor4f(1.0, 0.0, 0.0, 1.0);
+    //         // Color normal vectors red
+    //         glColor4f(1.0, 0.0, 0.0, 1.0);
 
-            if (show_norm_flag == FACE_NORM)
-            {
-                // Show face normal vectors at triangle midpoints
-                for (int i = 0; i < tri_vec_size; i++)
-                {
-                    // Compute vector magnitude to normalize it
-                    float magnitude = 0;
-                    for (int j = 0; j < 3; j++)
-                        magnitude += (_triangles[i].norm[j] * _triangles[i].norm[j]);
-                    magnitude = sqrt(magnitude);
+    //         if (show_norm_flag == FACE_NORM)
+    //         {
+    //             // Show face normal vectors at triangle midpoints
+    //             for (int i = 0; i < tri_vec_size; i++)
+    //             {
+    //                 // Compute vector magnitude to normalize it
+    //                 float magnitude = 0;
+    //                 for (int j = 0; j < 3; j++)
+    //                     magnitude += (_triangles[i].norm[j] * _triangles[i].norm[j]);
+    //                 magnitude = sqrt(magnitude);
 
-                    float norm_line_end[3];
-                    for (int j = 0; j < 3; j++)
-                    {
-                        // Normalize
-                        norm_line_end[j] = (_triangles[i].norm[j] / magnitude);
-                        // Extend to specified line length
-                        norm_line_end[j] *= line_length;
-                        // Add to triangle center to get line endpoint
-                        norm_line_end[j] += _triangles[i].center[j];
-                    }
+    //                 float norm_line_end[3];
+    //                 for (int j = 0; j < 3; j++)
+    //                 {
+    //                     // Normalize
+    //                     norm_line_end[j] = (_triangles[i].norm[j] / magnitude);
+    //                     // Extend to specified line length
+    //                     norm_line_end[j] *= line_length;
+    //                     // Add to triangle center to get line endpoint
+    //                     norm_line_end[j] += _triangles[i].center[j];
+    //                 }
 
-                    // Submit line start and end positions
-                    glVertex3fv(_triangles[i].center);
-                    glVertex3fv(norm_line_end);
-                }
-            }
-            else
-            {
-                // Show vertex normal vectors at vertex position
-                for (int i = 0; i < tri_vec_size; i++)
-                {
-                    for (int j = 0; j < 3; j++)
-                    {
-                        // Compute vector magnitude to normalize it
-                        float magnitude = 0;
-                        for (int k = 0; k < 3; k++)
-                            magnitude += (_vertices[_triangles[i].vert_ids[j]].norm[k] * _vertices[_triangles[i].vert_ids[j]].norm[k]);
-                        magnitude = sqrt(magnitude);
+    //                 // Submit line start and end positions
+    //                 glVertex3fv(_triangles[i].center);
+    //                 glVertex3fv(norm_line_end);
+    //             }
+    //         }
+    //         else
+    //         {
+    //             // Show vertex normal vectors at vertex position
+    //             for (int i = 0; i < tri_vec_size; i++)
+    //             {
+    //                 for (int j = 0; j < 3; j++)
+    //                 {
+    //                     // Compute vector magnitude to normalize it
+    //                     float magnitude = 0;
+    //                     for (int k = 0; k < 3; k++)
+    //                         magnitude += (_vertices[_triangles[i].vert_ids[j]].norm[k] * _vertices[_triangles[i].vert_ids[j]].norm[k]);
+    //                     magnitude = sqrt(magnitude);
 
-                        float norm_line_end[3];
-                        for (int k = 0; k < 3; k++)
-                        {
-                            // Normalize
-                            norm_line_end[k] = (_vertices[_triangles[i].vert_ids[j]].norm[k] / magnitude);
-                            // Extend to specified line length
-                            norm_line_end[k] *= line_length;
-                            // Add to vertex position to get line endpoint
-                            norm_line_end[k] += _vertices[_triangles[i].vert_ids[j]].pos[k];
-                        }
+    //                     float norm_line_end[3];
+    //                     for (int k = 0; k < 3; k++)
+    //                     {
+    //                         // Normalize
+    //                         norm_line_end[k] = (_vertices[_triangles[i].vert_ids[j]].norm[k] / magnitude);
+    //                         // Extend to specified line length
+    //                         norm_line_end[k] *= line_length;
+    //                         // Add to vertex position to get line endpoint
+    //                         norm_line_end[k] += _vertices[_triangles[i].vert_ids[j]].pos[k];
+    //                     }
 
-                        // Submit line start and end positions
-                        glVertex3fv(_vertices[_triangles[i].vert_ids[j]].pos);
-                        glVertex3fv(norm_line_end);
-                    }
-                }
-            }
+    //                     // Submit line start and end positions
+    //                     glVertex3fv(_vertices[_triangles[i].vert_ids[j]].pos);
+    //                     glVertex3fv(norm_line_end);
+    //                 }
+    //             }
+    //         }
 
-        glEnd();
-    }
+    //     glEnd();
+    // }
 }
 
 // Assignment operator overload (needed for pushing onto stack)
