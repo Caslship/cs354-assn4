@@ -30,11 +30,9 @@ static int win_width = 800, g_width = 800;
 static float g_near_plane = 0.01;
 static float g_far_plane = 10000.0;
 
-/// Render
-static GLenum render_mode = GL_FILL;
-static NORM_FLAG_ID show_normal_flag = NO_NORM;
-static Node * proot_node = new Node();
-static Node * pcurr_node = proot_node;
+/// Scene graph
+static Node * root_node = new Node();
+static Node * curr_node = root_node;
 
 /// Transformations
 static TRANS_FLAG_ID trans_flag = WORLD_COORDS;
@@ -71,7 +69,9 @@ extern bool ExecuteCommand();
 int main_window;
 GLUI * glui;
 int curr_render = 2;
+int child_node_index = 0;
 MODE_ID render_map[] = { MODE_POINTS, MODE_WIREFRAME, MODE_SOLID, MODE_SHADED, MODE_FACE_NORMS, MODE_VERT_NORMS };
+extern void UpdateGUI(int);
 
 // Render 
 void Display(void)
@@ -92,76 +92,8 @@ void Display(void)
     // Set light
     SetLighting();
 
-    switch(render_map[curr_render])
-    {
-        case MODE_POINTS:
-        {
-            show_normal_flag = NO_NORM;
-            render_mode = GL_POINT;
-            glDisable(GL_NORMALIZE);
-            glDisable(GL_LIGHTING);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-            break;
-        }
-        case MODE_WIREFRAME:
-        {
-            show_normal_flag = NO_NORM;
-            render_mode = GL_LINE;
-            glDisable(GL_NORMALIZE);
-            glDisable(GL_LIGHTING);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            break;
-        }
-        case MODE_SOLID:
-        {
-            show_normal_flag = NO_NORM;
-            render_mode = GL_FILL;
-            glDisable(GL_NORMALIZE);
-            glDisable(GL_LIGHTING);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            break;
-        }
-        case MODE_SHADED:
-        {
-            show_normal_flag = NO_NORM;
-            render_mode = GL_FILL;
-            glDisable(GL_NORMALIZE);
-            glEnable(GL_LIGHTING);
-            glEnable(GL_LIGHT0);
-            glEnable(GL_COLOR_MATERIAL);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            break;
-        }
-        case MODE_FACE_NORMS:
-        {
-            show_normal_flag= FACE_NORM;
-            render_mode = GL_FILL;
-            glEnable(GL_NORMALIZE);
-            glEnable(GL_LIGHTING);
-            glEnable(GL_LIGHT0);
-            glEnable(GL_COLOR_MATERIAL);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            break;
-        }
-        case MODE_VERT_NORMS:
-        {
-            show_normal_flag = VERT_NORM;
-            render_mode = GL_FILL;
-            glEnable(GL_NORMALIZE);
-            glEnable(GL_LIGHTING);
-            glEnable(GL_LIGHT0);
-            glEnable(GL_COLOR_MATERIAL);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
-
     // Traverse the scene graph
-    proot_node->traverseNode();
+    root_node->traverseNode();
 
     glutSwapBuffers();
 }
@@ -278,6 +210,40 @@ void Idle(void)
         glutSetWindow(main_window);
 
     glutPostRedisplay();   
+}
+
+void Control(int control_id)
+{
+    int old_children_vec_size = curr_node->getChildCount();
+
+    switch(control_id)
+    {
+        case CHILD_NODE_LB_ID:
+        {
+            break;
+        }
+        case CHILD_NODE_SELECT_B_ID:
+        {
+            Node * child_node = curr_node->getChild(child_node_index);
+
+            if (child_node != NULL)
+                curr_node = child_node;
+
+            break;
+        }
+        case PARENT_NODE_SELECT_B_ID:
+        {
+            Node * parent_node = curr_node->getParent();
+
+            if (parent_node != NULL)
+                curr_node = parent_node;
+
+            break;
+        }
+    }
+
+    UpdateGUI(old_children_vec_size);
+    glutPostRedisplay();
 }
 
 #endif

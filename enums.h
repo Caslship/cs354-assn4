@@ -8,13 +8,12 @@
 #ifndef __ENUMS_H__
 #define __ENUMS_H__
 
+// Widget IDs for callbacks
 enum GLUI_WIDGET_ID
 {
-/********** User IDs for callbacks ********/
-    LIGHT0_ENABLED_ID = 200,
-    LIGHT1_ENABLED_ID = 201,
-    LIGHT0_INTENSITY_ID = 250,
-    LIGHT1_INTENSITY_ID = 260,
+    CHILD_NODE_LB_ID = 200,
+    CHILD_NODE_SELECT_B_ID = 201,
+    PARENT_NODE_SELECT_B_ID = 202
 };
 
 

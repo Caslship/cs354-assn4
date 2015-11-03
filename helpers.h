@@ -37,7 +37,7 @@ void InitializeWindow(int& argc, char ** argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(win_width, win_height);
-    main_window = glutCreateWindow("Jason Palacios - Scene Graph Viewer");
+    main_window = glutCreateWindow("Jason Palacios - Scene Graph Manager");
 }
 
 // Initial settings for OpenGL
@@ -60,9 +60,9 @@ void RegisterCallbacks(void)
 
 void InitializeSceneGraph(void)
 {
-    CameraNode * pcamera_node = new CameraNode(proot_node);
-    LightNode * plight_node = new LightNode(proot_node);
-    ObjectNode * pobject_node = new ObjectNode(proot_node);
+    CameraNode * camera_node = new CameraNode(root_node);
+    LightNode * light_node = new LightNode(root_node);
+    ObjectNode * object_node = new ObjectNode(root_node);
 }
 
 string render_mode_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
@@ -70,75 +70,214 @@ string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Lig
 string transform_type_list[] = { "Scale", "Translate", "Rotate" };
 string transform_coord_type_list[] = { "World", "View" };
 
+GLUI_Panel * scene_graph_panel;
+GLUI_Panel * select_node_panel;
+GLUI_Listbox * child_node_select;
+GLUI_Button * select_child_node;
+GLUI_Button * select_parent_node;
+GLUI_Panel * add_node_panel;
+GLUI_Listbox * node_type_select;
+GLUI_Button * add_child_node;
+GLUI_Button * add_parent_node;
+GLUI_Panel * curr_node_panel;
+GLUI_Panel * attr_node_panel;
+GLUI_Listbox * render_mode_select;
+GLUI_Panel * geom_node_panel;
+GLUI_EditText * geometry_path;
+GLUI_Panel * transform_node_panel;
+GLUI_Listbox * transform_type_select;
+GLUI_Listbox * transform_coord_type_select;
+GLUI_EditText * x_param;
+GLUI_EditText * y_param;
+GLUI_EditText * z_param;
+GLUI_EditText * theta_param;
+GLUI_Button * update_node;
+GLUI_Button * delete_node;
+
 void InitializeGUI(void)
 {
-    glui = GLUI_Master.create_glui_subwindow(main_window, GLUI_SUBWINDOW_LEFT);
+    glui = GLUI_Master.create_glui_subwindow(main_window, GLUI_SUBWINDOW_RIGHT);
 
     // Scene graph panel
-    GLUI_Panel * scene_graph_panel = glui->add_panel("Edit Scene Graph");
-    GLUI_Panel * select_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Selection");
-    GLUI_Listbox * node_select = glui->add_listbox_to_panel(select_node_panel, "Child ");
-    for (int i = 0; i < pcurr_node->children_vec.size(); i++)
-        node_select->add_item(i, pcurr_node->children_vec[i]->getTypeString().c_str());
-    glui->add_statictext_to_panel(select_node_panel, "");
-    GLUI_Button * select_child_node = glui->add_button_to_panel(select_node_panel, "Select Child");
-    select_child_node->set_alignment(GLUI_ALIGN_LEFT);
-    GLUI_Button * select_parent_node = glui->add_button_to_panel(select_node_panel, "Select Parent");
-    select_parent_node->set_alignment(GLUI_ALIGN_LEFT);
-    select_node_panel->set_alignment(GLUI_ALIGN_LEFT);
-    GLUI_Panel * add_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Addition");
-    GLUI_Listbox * node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ");
-    for (int i = 0; i < 5; i++)
-        node_type_select->add_item(i, node_type_list[i].c_str());
-    glui->add_statictext_to_panel(add_node_panel, "");
-    GLUI_Button * add_child_node = glui->add_button_to_panel(add_node_panel, "Add Child");
-    add_child_node->set_alignment(GLUI_ALIGN_LEFT);
-    GLUI_Button * add_parent_node = glui->add_button_to_panel(add_node_panel, "Add Parent");
-    add_parent_node->set_alignment(GLUI_ALIGN_LEFT);
-    add_node_panel->set_alignment(GLUI_ALIGN_LEFT);
-    scene_graph_panel->set_alignment(GLUI_ALIGN_LEFT);
+    scene_graph_panel = glui->add_panel("Edit Scene Graph");
+
+        // Node selection panel
+        select_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Selection");
+            
+            // Child selection listbox
+            child_node_select = glui->add_listbox_to_panel(select_node_panel, "Child ", &child_node_index, CHILD_NODE_LB_ID, Control);
+            child_node_select->set_alignment(GLUI_ALIGN_RIGHT);
+
+            glui->add_separator_to_panel(select_node_panel);
+
+            // Node selection buttons
+            select_child_node = glui->add_button_to_panel(select_node_panel, "Select Child", CHILD_NODE_SELECT_B_ID, Control);
+            select_child_node->set_alignment(GLUI_ALIGN_RIGHT);
+            select_parent_node = glui->add_button_to_panel(select_node_panel, "Select Parent", PARENT_NODE_SELECT_B_ID, Control);
+            select_parent_node->set_alignment(GLUI_ALIGN_RIGHT);
+        
+        select_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
+
+        // Node addition panel
+        add_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Addition");
+            
+            // Node type selection listbox
+            node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ");
+            for (int i = 0; i < 5; i++)
+                node_type_select->add_item(i, node_type_list[i].c_str());
+            node_type_select->set_alignment(GLUI_ALIGN_RIGHT);
+
+            glui->add_separator_to_panel(add_node_panel);
+
+            // Node addition buttons
+            add_child_node = glui->add_button_to_panel(add_node_panel, "Add Child");
+            add_child_node->set_alignment(GLUI_ALIGN_RIGHT);
+            add_parent_node = glui->add_button_to_panel(add_node_panel, "Add Parent");
+            add_parent_node->set_alignment(GLUI_ALIGN_RIGHT);
+            
+        add_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
+
+    scene_graph_panel->set_alignment(GLUI_ALIGN_RIGHT);
 
     // Current node panel
-    GLUI_Panel * curr_node_panel = glui->add_panel("Edit Current Node");
-    GLUI_Panel * attr_node_panel = glui->add_panel_to_panel(curr_node_panel, "Attribute");
-    GLUI_Listbox * render_mode_select = glui->add_listbox_to_panel(attr_node_panel, "Render ", &curr_render);
-    for(int i = 0; i < 6; i++ )
-        render_mode_select->add_item(i, render_mode_list[i].c_str());
-    attr_node_panel->set_alignment(GLUI_ALIGN_LEFT);
-    GLUI_Panel * geom_node_panel = glui->add_panel_to_panel(curr_node_panel, "Geometry");
-    GLUI_EditText * geometry_path = glui->add_edittext_to_panel(geom_node_panel, "Obj");
-    geom_node_panel->set_alignment(GLUI_ALIGN_LEFT);
-    // glui->add_statictext_to_panel(curr_node_panel, "");
-    GLUI_Panel * transform_node_panel = glui->add_panel_to_panel(curr_node_panel, "Transformation");
-    GLUI_Listbox * transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ");
-    for(int i = 0; i < 3; i++)
-        transform_type_select->add_item(i, transform_type_list[i].c_str());
-    transform_type_select->set_alignment(GLUI_ALIGN_RIGHT);
-    GLUI_Listbox * transform_coord_type_select = glui->add_listbox_to_panel(transform_node_panel, "Coords ");
-    for (int i = 0; i < 2; i++)
-        transform_coord_type_select->add_item(i, transform_coord_type_list[i].c_str());
-    transform_coord_type_select->set_alignment(GLUI_ALIGN_RIGHT);
-    GLUI_EditText * x_param = glui->add_edittext_to_panel(transform_node_panel, "X");
-    x_param->set_alignment(GLUI_ALIGN_RIGHT);
-    GLUI_EditText * y_param = glui->add_edittext_to_panel(transform_node_panel, "Y");
-    y_param->set_alignment(GLUI_ALIGN_RIGHT);
-    GLUI_EditText * z_param = glui->add_edittext_to_panel(transform_node_panel, "Z");
-    z_param->set_alignment(GLUI_ALIGN_RIGHT);
-    GLUI_EditText * theta_param = glui->add_edittext_to_panel(transform_node_panel, "Theta");
-    theta_param->set_alignment(GLUI_ALIGN_RIGHT);
-    transform_node_panel->set_alignment(GLUI_ALIGN_LEFT);
-    glui->add_statictext_to_panel(curr_node_panel, "");
-    GLUI_Button * update_node = glui->add_button_to_panel(curr_node_panel, "Update");
-    update_node->set_alignment(GLUI_ALIGN_LEFT);
-    GLUI_Button * delete_node = glui->add_button_to_panel(curr_node_panel, "Delete");
-    delete_node->set_alignment(GLUI_ALIGN_LEFT);
-    curr_node_panel->set_alignment(GLUI_ALIGN_LEFT);
-    //curr_node_panel->disable();
+    curr_node_panel = glui->add_panel("Edit Current Node");
+
+        // Attribute panel
+        attr_node_panel = glui->add_panel_to_panel(curr_node_panel, "Attribute");
+            
+            render_mode_select = glui->add_listbox_to_panel(attr_node_panel, "Render ");
+            for(int i = 0; i < 6; i++ )
+                render_mode_select->add_item(i, render_mode_list[i].c_str());
+            render_mode_select->set_alignment(GLUI_ALIGN_RIGHT);
+
+        attr_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
+
+        // Geometry panel
+        geom_node_panel = glui->add_panel_to_panel(curr_node_panel, "Geometry");
+            
+            geometry_path = glui->add_edittext_to_panel(geom_node_panel, "Obj");
+            geometry_path->set_alignment(GLUI_ALIGN_RIGHT);
+
+        geom_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
+
+        // Transform panel
+        transform_node_panel = glui->add_panel_to_panel(curr_node_panel, "Transformation");
+
+            transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ");
+            for(int i = 0; i < 3; i++)
+                transform_type_select->add_item(i, transform_type_list[i].c_str());
+            transform_type_select->set_alignment(GLUI_ALIGN_RIGHT);
+
+            transform_coord_type_select = glui->add_listbox_to_panel(transform_node_panel, "Coords ");
+            for (int i = 0; i < 2; i++)
+                transform_coord_type_select->add_item(i, transform_coord_type_list[i].c_str());
+            transform_coord_type_select->set_alignment(GLUI_ALIGN_RIGHT);
+
+            glui->add_separator_to_panel(transform_node_panel);
+
+            x_param = glui->add_edittext_to_panel(transform_node_panel, "X");
+            x_param->set_alignment(GLUI_ALIGN_RIGHT);
+            y_param = glui->add_edittext_to_panel(transform_node_panel, "Y");
+            y_param->set_alignment(GLUI_ALIGN_RIGHT);
+            z_param = glui->add_edittext_to_panel(transform_node_panel, "Z");
+            z_param->set_alignment(GLUI_ALIGN_RIGHT);
+            theta_param = glui->add_edittext_to_panel(transform_node_panel, "Theta");
+            theta_param->set_alignment(GLUI_ALIGN_RIGHT);
+
+        transform_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
+
+        // Apply node modification buttons
+        update_node = glui->add_button_to_panel(curr_node_panel, "Update");
+        update_node->set_alignment(GLUI_ALIGN_RIGHT);
+        delete_node = glui->add_button_to_panel(curr_node_panel, "Delete");
+        delete_node->set_alignment(GLUI_ALIGN_RIGHT);
+
+    curr_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
+
+    // Update GUI according to current node
+    UpdateGUI(0);
 
 
     // Link windows to GLUI, and register idle callback
     glui->set_main_gfx_window(main_window);
     GLUI_Master.set_glutIdleFunc(Idle);
+}
+
+void UpdateGUI(int old_children_vec_size)
+{
+    // Start every component off in an enabled state
+    scene_graph_panel->enable();
+    select_node_panel->enable();
+    child_node_select->enable();
+    select_child_node->enable();
+    select_parent_node->enable();
+    add_node_panel->enable();
+    node_type_select->enable();
+    add_child_node->enable();
+    add_parent_node->enable();
+    curr_node_panel->enable();
+    attr_node_panel->enable();
+    render_mode_select->enable();
+    geom_node_panel->enable();
+    geometry_path->enable();
+    transform_node_panel->enable();
+    transform_type_select->enable();
+    transform_coord_type_select->enable();
+    x_param->enable();
+    y_param->enable();
+    z_param->enable();
+    theta_param->enable();
+    update_node->enable();
+    delete_node->enable();
+
+    string curr_node_type = curr_node->getNodeType();
+    vector<string> children_node_type_vec = curr_node->getChildNodeTypes();
+
+    for (int i = 0; i < old_children_vec_size; i++)
+        child_node_select->delete_item(i);
+
+    int children_vec_size = curr_node->getChildCount();
+    if (children_vec_size > 0)
+    {
+        for (int i = 0; i < children_vec_size; i++)
+            child_node_select->add_item(i, children_node_type_vec[i].c_str());
+    }
+    else
+    {
+        child_node_select->disable();
+    }
+
+    if (children_vec_size <= 0)
+        select_child_node->disable();
+
+    if (curr_node == root_node)
+        select_parent_node->disable();
+
+    if (curr_node == root_node)
+        add_parent_node->disable();
+
+    if (curr_node_type == "Camera" || curr_node_type == "Geometry" || curr_node_type == "Light")
+        add_child_node->disable();
+
+    if (curr_node_type != "Attribute")
+        attr_node_panel->disable();
+
+    if (curr_node_type != "Geometry")
+        geom_node_panel->disable();
+
+    if (curr_node_type != "Transform")
+        transform_node_panel->disable();
+    else
+    {
+        if (((TransformNode *)curr_node)->getTransformType() != ROTATE)
+            theta_param->disable();
+    }
+
+    if (curr_node_type == "Camera")
+        delete_node->disable();
+
+    if (curr_node_type == "Light")
+        update_node->disable();
 }
 
 // Read command line arguments

@@ -14,14 +14,18 @@
 class Node
 {
 protected:
-public:
     std::string node_type;
     Node * parent;
     std::vector<Node *> children_vec;
+public:
     Node(void);
     Node(Node * parent, std::string node_type = "Root");
     ~Node(void);
-    std::string getTypeString(void);
+    Node * getChild(int index = 0);
+    Node * getParent(void);
+    std::string getNodeType(void);
+    std::vector<std::string> getChildNodeTypes(void);
+    int getChildCount(void);
     void addChild(Node * child);
     void addParent(Node * new_parent);
     void deleteChild(Node * child);
@@ -63,9 +67,41 @@ Node::~Node(void)
         parent = NULL;
     }
 }
-std::string Node::getTypeString(void)
+
+Node * Node::getChild(int index)
+{
+    if (index < 0 || index >= children_vec.size())
+        return NULL;
+    else
+        return children_vec[index];
+}
+
+Node * Node::getParent(void)
+{
+    return parent;
+}
+
+std::string Node::getNodeType(void)
 {
     return node_type;
+}
+
+std::vector<std::string> Node::getChildNodeTypes(void)
+{
+    std::vector<std::string> children_node_type_vec;
+
+    int children_vec_size = children_vec.size();
+    for (int i = 0; i < children_vec_size; i++)
+    {
+        children_node_type_vec.push_back(children_vec[i]->node_type);
+    }
+
+    return children_node_type_vec;
+}
+
+int Node::getChildCount(void)
+{
+    return children_vec.size();
 }
 
 void Node::addChild(Node * child)
@@ -178,8 +214,14 @@ private:
 public:
     TransformNode(void) : Node(NULL, "Transform") {}
     TransformNode(Node * parent) : Node(parent, "Transform") {}
+    TRANS_ID getTransformType(void);
     void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
+
+TRANS_ID TransformNode::getTransformType(void)
+{
+    return transformation_type;
+}
 
 void TransformNode::traverseNode(glm::mat4 transform)
 {
@@ -297,7 +339,6 @@ public:
 
 void LightNode::traverseNode(glm::mat4 transform)
 {
-    std::cout << "LIGHT" << std::endl;
     // Have lights always start off at origin
     glm::vec4 pos(0.0, 0.0, 0.0, 1.0);
     // Have transformation matrix define where it should be placed
@@ -317,7 +358,6 @@ public:
 
 void CameraNode::traverseNode(glm::mat4 transform)
 {
-    std::cout << "CAMERA" << std::endl;
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 

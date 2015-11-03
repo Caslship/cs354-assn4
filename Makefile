@@ -32,4 +32,5 @@ $(PROD): $(OBJS)
 
 clean:
 	rm -f $(PROD)
+	rm -f $(PROD).exe
 	rm -f *.o
