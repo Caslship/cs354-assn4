@@ -46,10 +46,7 @@ public:
 	{
 		if(!srchtok) return 0;
 		TokenPair * ptokp = &tokenMap[0];
-		for(; *ptokp != EMPTY_PAIR && strcmp(ptokp->strval,srchtok) != 0; ptokp++)
-		{
-			// Nothing
-		}
+		for(; *ptokp != EMPTY_PAIR && strcmp(ptokp->strval,srchtok) != 0; ptokp++);
 		if(*ptokp==EMPTY_PAIR) ptokp=0;
 		return ptokp;
 	}

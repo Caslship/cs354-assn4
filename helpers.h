@@ -18,7 +18,6 @@
 #include "node.h"
 #include "geom.h"
 #include "loader.h"
-#include "debug.h"
 
 using namespace std;
 
@@ -59,8 +58,14 @@ void RegisterCallbacks(void)
     glutMotionFunc(MouseMotion);
 }
 
+void InitializeSceneGraph(void)
+{
+    CameraNode * pcamera_node = new CameraNode(proot_node);
+    LightNode * plight_node = new LightNode(proot_node);
+    ObjectNode * pobject_node = new ObjectNode(proot_node);
+}
+
 string render_mode_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
-string root_node_list[] = { "Camera", "Light", "Object" };
 string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Light" };
 string transform_type_list[] = { "Scale", "Translate", "Rotate" };
 string transform_coord_type_list[] = { "World", "View" };
@@ -73,15 +78,14 @@ void InitializeGUI(void)
     GLUI_Panel * scene_graph_panel = glui->add_panel("Edit Scene Graph");
     GLUI_Panel * select_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Selection");
     GLUI_Listbox * node_select = glui->add_listbox_to_panel(select_node_panel, "Child ");
-    for (int i = 0; i < 3; i++)
-        node_select->add_item(i, root_node_list[i].c_str());
+    for (int i = 0; i < pcurr_node->children_vec.size(); i++)
+        node_select->add_item(i, pcurr_node->children_vec[i]->getTypeString().c_str());
     glui->add_statictext_to_panel(select_node_panel, "");
     GLUI_Button * select_child_node = glui->add_button_to_panel(select_node_panel, "Select Child");
     select_child_node->set_alignment(GLUI_ALIGN_LEFT);
     GLUI_Button * select_parent_node = glui->add_button_to_panel(select_node_panel, "Select Parent");
     select_parent_node->set_alignment(GLUI_ALIGN_LEFT);
     select_node_panel->set_alignment(GLUI_ALIGN_LEFT);
-    // glui->add_statictext_to_panel(scene_graph_panel, "");
     GLUI_Panel * add_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Addition");
     GLUI_Listbox * node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ");
     for (int i = 0; i < 5; i++)
@@ -101,7 +105,6 @@ void InitializeGUI(void)
     for(int i = 0; i < 6; i++ )
         render_mode_select->add_item(i, render_mode_list[i].c_str());
     attr_node_panel->set_alignment(GLUI_ALIGN_LEFT);
-    // glui->add_statictext_to_panel(curr_node_panel, "");
     GLUI_Panel * geom_node_panel = glui->add_panel_to_panel(curr_node_panel, "Geometry");
     GLUI_EditText * geometry_path = glui->add_edittext_to_panel(geom_node_panel, "Obj");
     geom_node_panel->set_alignment(GLUI_ALIGN_LEFT);
@@ -130,11 +133,10 @@ void InitializeGUI(void)
     GLUI_Button * delete_node = glui->add_button_to_panel(curr_node_panel, "Delete");
     delete_node->set_alignment(GLUI_ALIGN_LEFT);
     curr_node_panel->set_alignment(GLUI_ALIGN_LEFT);
-    curr_node_panel->disable();
+    //curr_node_panel->disable();
 
 
-    /**** Link windows to GLUI, and register idle callback ******/
-
+    // Link windows to GLUI, and register idle callback
     glui->set_main_gfx_window(main_window);
     GLUI_Master.set_glutIdleFunc(Idle);
 }
@@ -192,13 +194,6 @@ void ExecuteArguments(int& argc, char ** argv)
                 return;
             }
         }
-        else if (prog_switch.compare("-d") == 0)
-        {
-            // Run the program in debug mode
-
-            debug_flag = true;
-            cout << "Debug mode enabled" << endl;
-        }
         else
         {
             cout << "Invalid switch!" << endl;
@@ -218,9 +213,6 @@ bool ExecuteCommand(void)
     int pos = 0;
     int command_length = command.length();
 
-    if (debug_flag)
-        cout << "-- Command: " << command << endl;
-
     // Skip spaces but make sure not to hit the end of the string
     while (pos < command_length && command[pos] ==  ' ')
         pos++;
@@ -236,9 +228,6 @@ bool ExecuteCommand(void)
         return false;
 
     command_type = toupper(command_type);
-
-    if (debug_flag)
-        cout << "-- Type: " << command_type << endl;
 
     switch(command_type)
     {
@@ -263,17 +252,12 @@ bool ExecuteCommand(void)
             if (ext_pos == string::npos || ext_pos != file_name.length() - 4)
                 file_name += ".obj";
 
-            if (debug_flag)
-                cout << "---- Load: " << file_name << endl;
-
             // Load object file into Trimesh object
             Trimesh model;
 
             // Fail if the object failed to load
             if (!model_loader.loadOBJ(file_name.c_str(), &model))
                 return false;
-
-            model_stack.push(model);
 
             // Adjust camera for new object
             look_at_pos = model.getCenter();
@@ -289,28 +273,16 @@ bool ExecuteCommand(void)
 
             glMatrixMode(GL_MODELVIEW);
 
-            if (debug_flag)
-            {
-                cout << "---- Camera pos: { " << look_at_pos.pos[0] << ", " << look_at_pos.pos[1] << ", " << zoom_level << " }" << endl;
-                cout << "---- Camera look at pos: { " << look_at_pos.pos[0] << ", " << look_at_pos.pos[1] << ", " << look_at_pos.pos[2] << " }" << endl;
-            }
-
             break;
         }
         case CLI_DELETE:
         {
-            if (!model_stack.empty())
+            if (false)
             {
-                if (debug_flag)
-                    cout << "---- Delete: " << file_name << endl;
-
-                // Pop off model from stack
-                model_stack.pop();
-
                 // Reset camera for old object
-                if (!model_stack.empty())
+                if (false)
                 {
-                    Trimesh model = model_stack.top();
+                    Trimesh model;
 
                     look_at_pos = model.getCenter();
                     zoom_level = model.getBoundingLength();
@@ -324,16 +296,6 @@ bool ExecuteCommand(void)
                     gluPerspective(45.0, (float)g_width / (float)g_height, g_near_plane, g_far_plane);
 
                     glMatrixMode(GL_MODELVIEW);
-
-                    if (debug_flag)
-                    {
-                        cout << "---- Camera pos: { " << look_at_pos.pos[0] << ", " << look_at_pos.pos[1] << ", " << zoom_level << " }" << endl;
-                        cout << "---- Camera look at pos: { " << look_at_pos.pos[0] << ", " << look_at_pos.pos[1] << ", " << look_at_pos.pos[2] << " }" << endl;
-                    }
-                }
-                else if (debug_flag)
-                {
-                    zoom_level = 50.0 * VIEWING_DISTANCE_MIN;
                 }
             }
 
@@ -341,22 +303,15 @@ bool ExecuteCommand(void)
         }
         case CLI_IDENTITY:
         {
-            if (!model_stack.empty())
+            if (false)
             {
                 if (trans_flag == WORLD_COORDS)
                 {
-                    if (debug_flag)
-                        cout << "---- Clear transforms: " << file_name << endl;
-
-                // Clear transformations for object
-                    model_stack.top().clearTransformations();
+                    // Clear transformations for object
                 }
                 else if (trans_flag == VIEW_COORDS)
                 {
-                    if (debug_flag)
-                        cout << "---- Clear transforms: view" << endl;
-
-                    Trimesh model = model_stack.top();
+                    Trimesh model;
 
                     // Clear transformations for view
                     look_at_pos = model.getCenter();
@@ -371,12 +326,6 @@ bool ExecuteCommand(void)
                     gluPerspective(45.0, (float)g_width / (float)g_height, g_near_plane, g_far_plane);
 
                     glMatrixMode(GL_MODELVIEW);
-
-                    if (debug_flag)
-                    {
-                        cout << "---- Camera pos: { " << look_at_pos.pos[0] << ", " << look_at_pos.pos[1] << ", " << zoom_level << " }" << endl;
-                        cout << "---- Camera look at pos: { " << look_at_pos.pos[0] << ", " << look_at_pos.pos[1] << ", " << look_at_pos.pos[2] << " }" << endl;
-                    }
                 }
             }
 
@@ -388,19 +337,6 @@ bool ExecuteCommand(void)
         {
             float ang = 0.0;
             float xyz[3] = {};
-
-            if (debug_flag)
-            {
-                if (trans_flag == WORLD_COORDS)
-                {
-                    if (!model_stack.empty())
-                        cout << "---- Transform: " << file_name << endl;
-                }
-                else if (trans_flag == VIEW_COORDS)
-                {
-                    cout << "---- Transform: view" << endl;
-                }
-            }
 
             // Read angle first if we have a rotate command
             if (command_type == CLI_ROTATE)
@@ -470,28 +406,8 @@ bool ExecuteCommand(void)
             xyz[1] = atof(y.c_str());
             xyz[2] = atof(z.c_str());
 
-            if (debug_flag)
-            {
-                if (command_type == CLI_ROTATE)
-                    cout << "---- Angle: " << ang << endl;
-
-                cout << "---- X: " << xyz[0] << endl;
-                cout << "---- Y: " << xyz[1] << endl;
-                cout << "---- Z: " << xyz[2] << endl;
-            }
-
             if (trans_flag == WORLD_COORDS)
             {
-                if (!model_stack.empty())
-                {
-                    // Add transformation to object
-                    if (command_type == CLI_TRANSLATE)
-                        model_stack.top().addTransformation(TRANSLATE, xyz);
-                    else if (command_type == CLI_SCALE)
-                        model_stack.top().addTransformation(SCALE, xyz);
-                    else if (command_type == CLI_ROTATE)
-                        model_stack.top().addTransformation(ROTATE, xyz, ang);
-                }
             }
             else if (trans_flag == VIEW_COORDS)
             {
@@ -536,9 +452,6 @@ bool ExecuteCommand(void)
         {
             // Set coordinate system to use
             trans_flag = (command_type == CLI_VIEW ? VIEW_COORDS : WORLD_COORDS);
-
-            if (debug_flag)
-                cout << "---- Transformation mode: " << command_type << endl;
             
             break;
         }
@@ -562,9 +475,6 @@ bool ExecuteCommand(void)
 
             mode_type = toupper(mode_type);
 
-            if (debug_flag)
-                cout << "---- Render mode: " << mode_type << endl;
-
             bool found_mode = false;
             for (int i = 0; i < 6; i++)
             {
@@ -580,23 +490,8 @@ bool ExecuteCommand(void)
             else
                 return false;
         }
-        case CLI_DEBUG:
-        {
-            // Toggle debug mode
-            debug_flag = !debug_flag;
-
-            if (!debug_flag)
-                cout << "---- Debug mode: " << debug_flag << endl;
-            else
-                cout << "Debug mode enabled" << endl;
-            
-            break;
-        }
         case CLI_EXIT:
         {
-            if (debug_flag)
-                cout << "---- Exit" << endl;
-
             // Quit program
             exit(EXIT_SUCCESS);
             break;
@@ -611,9 +506,11 @@ bool ExecuteCommand(void)
 // Set camera view depending current zoom, pan, and orbit settings
 void SetCameraView(void)
 {
-    if (!model_stack.empty())
+    if (false)
     {
-        vertex_t model_center = model_stack.top().getCenter();
+        vertex_t model_center;
+        float pos[0] = {};
+        model_center.setPos(pos);
 
         // Zoom
         gluLookAt(look_at_pos.pos[0], look_at_pos.pos[1], zoom_level, look_at_pos.pos[0], look_at_pos.pos[1], look_at_pos.pos[2], 0.0, 1.0, 0.0);
@@ -627,20 +524,6 @@ void SetCameraView(void)
         glRotatef(orbit_theta, 0.0, 1.0, 0.0);
         glRotatef(orbit_delta, 0.0, 0.0, 1.0);
         glTranslatef(-model_center.pos[0], -model_center.pos[1], -model_center.pos[2]);
-    }
-    else if (debug_flag)
-    {
-        // Zoom
-        gluLookAt(0.0, 0.0, zoom_level, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
-        // Pan
-        glTranslatef(-pan_x, -pan_y, 0.0);
-        glTranslatef(center[0], center[1], center[2] - zoom_level);
-
-        // Orbit
-        glRotatef(orbit_phi, 1.0, 0.0, 0.0);
-        glRotatef(orbit_theta, 0.0, 1.0, 0.0);
-        glTranslatef(-center[0], -center[1], -center[2]);
     }
 }
 

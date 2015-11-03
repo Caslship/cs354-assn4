@@ -10,13 +10,11 @@
 
 #include <GL/glut.h>
 #include <GL/glui.h>
-#include <iostream>
 #include <string>
 #include <cctype>
-#include <stack>
 #include "geom.h"
 #include "enums.h"
-#include "debug.h"
+#include "node.h"
 
 using namespace std;
 
@@ -35,7 +33,8 @@ static float g_far_plane = 10000.0;
 /// Render
 static GLenum render_mode = GL_FILL;
 static NORM_FLAG_ID show_normal_flag = NO_NORM;
-static stack<Trimesh> model_stack;
+static Node * proot_node = new Node();
+static Node * pcurr_node = proot_node;
 
 /// Transformations
 static TRANS_FLAG_ID trans_flag = WORLD_COORDS;
@@ -161,15 +160,8 @@ void Display(void)
         }
     }
 
-    // Render the model
-    if (!model_stack.empty())
-    {
-        model_stack.top().render(show_normal_flag, render_mode);
-    }
-    else if (debug_flag)
-    {
-        cube();
-    }
+    // Traverse the scene graph
+    proot_node->traverseNode();
 
     glutSwapBuffers();
 }
@@ -259,7 +251,6 @@ void Keyboard(unsigned char key, int x, int y)
     if (key == 27)
     {
         // Escape (quit)
-
         exit(EXIT_SUCCESS);
     }
 
@@ -268,12 +259,7 @@ void Keyboard(unsigned char key, int x, int y)
     {
         if (key == 13)
         {
-            // Enter (execute command)
-
-            cout << endl;
-
-            if (!ExecuteCommand())
-                cout << "Invalid command or parameters!" << endl;
+            ExecuteCommand();
 
             command.clear();
 
@@ -281,14 +267,9 @@ void Keyboard(unsigned char key, int x, int y)
         }
         else
         {
-            // Add to current key sequence
-            
-            cout << key;
             command += key;
         }
     }
-
-    cout.flush();
 }
 
 void Idle(void)

@@ -17,6 +17,7 @@ enum GLUI_WIDGET_ID
     LIGHT1_INTENSITY_ID = 260,
 };
 
+
 // Shading mode to consider when rendering Trimesh object
 enum NORM_FLAG_ID
 {

@@ -14,44 +14,6 @@
 #include <vector>
 #include <cmath>
 #include "enums.h"
-#include "debug.h"
-
-/// Transformation
-struct transformation_t
-{
-    TRANS_ID type;
-
-    float xyz[3];
-    float angle;
-
-    void setParams(TRANS_ID, float[], float);
-    transformation_t& operator=(const transformation_t&);
-};
-
-// Set the details of the transformation
-void transformation_t::setParams(TRANS_ID type, float xyz[], float angle = 0.0)
-{
-    this->type = type;
-
-    for (int i = 0; i < 3; i++)
-        this->xyz[i] = xyz[i];
-
-    this->angle = angle;
-
-}
-
-// Assignment operator overload (needed for pushing Trimesh onto stack)
-transformation_t& transformation_t::operator=(const transformation_t& src)
-{
-    type = src.type;
-
-    for (int i = 0; i < 3; i++)
-        xyz[i] = src.xyz[i];
-
-    angle = src.angle;
-
-    return *this;
-}
 
 /// Vertex
 struct vertex_t
@@ -128,7 +90,6 @@ class Trimesh
 {
 private:
     bool _changed;
-    std::list<transformation_t> _transformations;
     std::vector<vertex_t> _vertices;
     std::vector<triangle_t> _triangles;
     float _bounds[3][2];
@@ -144,8 +105,6 @@ public:
     Trimesh(void);
     float getBoundingLength(void);
     vertex_t getCenter(void);
-    void clearTransformations(void);
-    void addTransformation(TRANS_ID, float[], float);
     void addVertex(float[]);
     void addFace(int[]);
     void render(NORM_FLAG_ID, GLenum);
@@ -259,20 +218,6 @@ vertex_t Trimesh::getCenter(void)
     return _center;
 }
 
-// In response to the 'I' command, clear the model transforms for this object
-void Trimesh::clearTransformations(void)
-{
-    _transformations.clear();
-}
-
-// Add a transformation to the object for use in rendering
-void Trimesh::addTransformation(TRANS_ID type, float xyz[], float angle = 0.0)
-{
-    transformation_t trans;
-    trans.setParams(type, xyz, angle);
-    _transformations.push_front(trans);
-}
-
 // Given a position in 3D space, add a vertex to the object
 void Trimesh::addVertex(float pos[])
 {
@@ -349,74 +294,6 @@ void Trimesh::render(NORM_FLAG_ID show_norm_flag = NO_NORM, GLenum render_mode =
 
     glMatrixMode(GL_MODELVIEW);
 
-    // Draw extra features such as a bounding rectangle if in debug mode
-    if (debug_flag)
-    {
-        // Draw the bounding rectangle in wireframe mode so that we can see through it
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-        glBegin(GL_QUADS);
-
-            // Color the bounding rectangle white
-            glColor4f(1.0, 1.0, 1.0, 1.0);
-
-            // Front
-            glVertex3f(_bounds[0][0], _bounds[1][1], _bounds[2][1]);
-            glVertex3f(_bounds[0][0], _bounds[1][0], _bounds[2][1]);
-            glVertex3f(_bounds[0][1], _bounds[1][0], _bounds[2][1]);
-            glVertex3f(_bounds[0][1], _bounds[1][1], _bounds[2][1]);
-
-            // Back
-            glVertex3f(_bounds[0][0], _bounds[1][1], _bounds[2][0]);
-            glVertex3f(_bounds[0][0], _bounds[1][0], _bounds[2][0]);
-            glVertex3f(_bounds[0][1], _bounds[1][0], _bounds[2][0]);
-            glVertex3f(_bounds[0][1], _bounds[1][1], _bounds[2][0]);
-
-            // Top
-            glVertex3f(_bounds[0][0], _bounds[1][1], _bounds[2][0]);
-            glVertex3f(_bounds[0][0], _bounds[1][1], _bounds[2][1]);
-            glVertex3f(_bounds[0][1], _bounds[1][1], _bounds[2][1]);
-            glVertex3f(_bounds[0][1], _bounds[1][1], _bounds[2][0]);          
-
-            // Bottom
-            glVertex3f(_bounds[0][0], _bounds[1][0], _bounds[2][0]);
-            glVertex3f(_bounds[0][0], _bounds[1][0], _bounds[2][1]);
-            glVertex3f(_bounds[0][1], _bounds[1][0], _bounds[2][1]);
-            glVertex3f(_bounds[0][1], _bounds[1][0], _bounds[2][0]); 
-
-        glEnd();
-
-        // Make sure to set rendering mode back to its original state
-        glPolygonMode(GL_FRONT_AND_BACK, render_mode);
-    }
-
-    // Apply all transformations before drawing (we want to act like the object starts off at the origin)
-    glTranslatef(_center.pos[0], _center.pos[1], _center.pos[2]);
-    for (std::list<transformation_t>::iterator it = _transformations.begin(); it != _transformations.end(); ++it)
-    {
-        switch(it->type)
-        {
-            case SCALE:
-            {
-                glScalef(it->xyz[0], it->xyz[1], it->xyz[2]);
-                break;
-            }
-            case TRANSLATE:
-            {
-                glTranslatef(it->xyz[0], it->xyz[1], it->xyz[2]);
-                break;
-            }
-            case ROTATE:
-            {
-                glRotatef(it->angle, it->xyz[0], it->xyz[1], it->xyz[2]);
-                break;
-            }
-            default:
-                break;
-        }
-    }
-    glTranslatef(-_center.pos[0], -_center.pos[1], -_center.pos[2]);
-
     int tri_vec_size = _triangles.size();
 
     // Loop through and draw each triangle
@@ -436,15 +313,6 @@ void Trimesh::render(NORM_FLAG_ID show_norm_flag = NO_NORM, GLenum render_mode =
                 // Set normal for vertex if specified by show_norm_flag
                 if (show_norm_flag == VERT_NORM)
                     glNormal3fv(_vertices[_triangles[i].vert_ids[j]].norm);
-                else if ((show_norm_flag == NO_NORM) && debug_flag)
-                {
-                    if (j == 0)
-                        glColor4f(1.0, 0.0, 0.0, 1.0);
-                    if (j == 1)
-                        glColor4f(0.0, 1.0, 0.0, 1.0);
-                    if (j == 2)
-                        glColor4f(0.0, 0.0, 1.0, 1.0);
-                }
 
                 // Submit vertex position
                 glVertex3fv(_vertices[_triangles[i].vert_ids[j]].pos);
@@ -454,79 +322,75 @@ void Trimesh::render(NORM_FLAG_ID show_norm_flag = NO_NORM, GLenum render_mode =
 
     glEnd();
 
-    // Draw extra features such as normal vectors if in debug mode
-    if (debug_flag)
+    if (show_norm_flag != NO_NORM)
     {
-        if (show_norm_flag != NO_NORM)
-        {
-            // We want the vector lines to be approximately 1.5% the length of the bounding cube
-            float line_length = getBoundingLength() * 0.015;
+        // We want the vector lines to be approximately 1.5% the length of the bounding cube
+        float line_length = getBoundingLength() * 0.015;
 
-            glBegin(GL_LINES);
+        glBegin(GL_LINES);
 
-                // Color normal vectors red
-                glColor4f(1.0, 0.0, 0.0, 1.0);
+            // Color normal vectors red
+            glColor4f(1.0, 0.0, 0.0, 1.0);
 
-                if (show_norm_flag == FACE_NORM)
+            if (show_norm_flag == FACE_NORM)
+            {
+                // Show face normal vectors at triangle midpoints
+                for (int i = 0; i < tri_vec_size; i++)
                 {
-                    // Show face normal vectors at triangle midpoints
-                    for (int i = 0; i < tri_vec_size; i++)
+                    // Compute vector magnitude to normalize it
+                    float magnitude = 0;
+                    for (int j = 0; j < 3; j++)
+                        magnitude += (_triangles[i].norm[j] * _triangles[i].norm[j]);
+                    magnitude = sqrt(magnitude);
+
+                    float norm_line_end[3];
+                    for (int j = 0; j < 3; j++)
+                    {
+                        // Normalize
+                        norm_line_end[j] = (_triangles[i].norm[j] / magnitude);
+                        // Extend to specified line length
+                        norm_line_end[j] *= line_length;
+                        // Add to triangle center to get line endpoint
+                        norm_line_end[j] += _triangles[i].center[j];
+                    }
+
+                    // Submit line start and end positions
+                    glVertex3fv(_triangles[i].center);
+                    glVertex3fv(norm_line_end);
+                }
+            }
+            else
+            {
+                // Show vertex normal vectors at vertex position
+                for (int i = 0; i < tri_vec_size; i++)
+                {
+                    for (int j = 0; j < 3; j++)
                     {
                         // Compute vector magnitude to normalize it
                         float magnitude = 0;
-                        for (int j = 0; j < 3; j++)
-                            magnitude += (_triangles[i].norm[j] * _triangles[i].norm[j]);
+                        for (int k = 0; k < 3; k++)
+                            magnitude += (_vertices[_triangles[i].vert_ids[j]].norm[k] * _vertices[_triangles[i].vert_ids[j]].norm[k]);
                         magnitude = sqrt(magnitude);
 
                         float norm_line_end[3];
-                        for (int j = 0; j < 3; j++)
+                        for (int k = 0; k < 3; k++)
                         {
                             // Normalize
-                            norm_line_end[j] = (_triangles[i].norm[j] / magnitude);
+                            norm_line_end[k] = (_vertices[_triangles[i].vert_ids[j]].norm[k] / magnitude);
                             // Extend to specified line length
-                            norm_line_end[j] *= line_length;
-                            // Add to triangle center to get line endpoint
-                            norm_line_end[j] += _triangles[i].center[j];
+                            norm_line_end[k] *= line_length;
+                            // Add to vertex position to get line endpoint
+                            norm_line_end[k] += _vertices[_triangles[i].vert_ids[j]].pos[k];
                         }
 
                         // Submit line start and end positions
-                        glVertex3fv(_triangles[i].center);
+                        glVertex3fv(_vertices[_triangles[i].vert_ids[j]].pos);
                         glVertex3fv(norm_line_end);
                     }
                 }
-                else
-                {
-                    // Show vertex normal vectors at vertex position
-                    for (int i = 0; i < tri_vec_size; i++)
-                    {
-                        for (int j = 0; j < 3; j++)
-                        {
-                            // Compute vector magnitude to normalize it
-                            float magnitude = 0;
-                            for (int k = 0; k < 3; k++)
-                                magnitude += (_vertices[_triangles[i].vert_ids[j]].norm[k] * _vertices[_triangles[i].vert_ids[j]].norm[k]);
-                            magnitude = sqrt(magnitude);
+            }
 
-                            float norm_line_end[3];
-                            for (int k = 0; k < 3; k++)
-                            {
-                                // Normalize
-                                norm_line_end[k] = (_vertices[_triangles[i].vert_ids[j]].norm[k] / magnitude);
-                                // Extend to specified line length
-                                norm_line_end[k] *= line_length;
-                                // Add to vertex position to get line endpoint
-                                norm_line_end[k] += _vertices[_triangles[i].vert_ids[j]].pos[k];
-                            }
-
-                            // Submit line start and end positions
-                            glVertex3fv(_vertices[_triangles[i].vert_ids[j]].pos);
-                            glVertex3fv(norm_line_end);
-                        }
-                    }
-                }
-
-            glEnd();
-        }
+        glEnd();
     }
 }
 
@@ -534,7 +398,6 @@ void Trimesh::render(NORM_FLAG_ID show_norm_flag = NO_NORM, GLenum render_mode =
 Trimesh& Trimesh::operator=(const Trimesh& src)
 {
     _changed = src._changed;
-    _transformations = src._transformations;
     _vertices = src._vertices;
     _triangles = src._triangles;
 

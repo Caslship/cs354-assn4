@@ -5,28 +5,37 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <string>
 #include <vector>
+#include <iostream>
 #include "enums.h"
 #include "geom.h"
 
 class Node
 {
 protected:
+public:
+    std::string node_type;
     Node * parent;
     std::vector<Node *> children_vec;
-public:
     Node(void);
-    Node(Node * parent);
+    Node(Node * parent, std::string node_type = "Root");
     ~Node(void);
+    std::string getTypeString(void);
     void addChild(Node * child);
     void addParent(Node * new_parent);
     void deleteChild(Node * child);
-    virtual void traverseNode(void);
+    virtual void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
 
-Node::Node(void) : parent(NULL) {}
+Node::Node(void) : parent(NULL), node_type("Root") {}
 
-Node::Node(Node * parent) : parent(parent) {}
+Node::Node(Node * parent, std::string node_type)
+{
+    this->node_type = node_type;
+    this->parent = NULL;
+    this->addParent(parent);
+}
 
 Node::~Node(void)
 {
@@ -53,6 +62,10 @@ Node::~Node(void)
         }
         parent = NULL;
     }
+}
+std::string Node::getTypeString(void)
+{
+    return node_type;
 }
 
 void Node::addChild(Node * child)
@@ -100,26 +113,28 @@ void Node::deleteChild(Node * child)
     }
 }
 
-void Node::traverseNode(void)
+void Node::traverseNode(glm::mat4 transform)
 {
     int children_vec_size = children_vec.size();
     for (int i = 0; i < children_vec_size; i++)
     {
-        children_vec[i]->traverseNode();
+        children_vec[i]->traverseNode(transform);
     }
 }
 
 class ObjectNode : public Node
 {
 public:
-    void traverseNode(void);
+    ObjectNode(void) : Node(NULL, "Object") {}
+    ObjectNode(Node * parent) : Node(parent, "Object") {}
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
 
-void ObjectNode::traverseNode(void)
+void ObjectNode::traverseNode(glm::mat4 transform)
 {
     glPushMatrix();
 
-        Node::traverseNode();
+        Node::traverseNode(transform);
 
     glPopMatrix();
 }
@@ -127,61 +142,70 @@ void ObjectNode::traverseNode(void)
 class GeometryNode : public Node
 {
 private:
-    Trimesh * mesh;
+    Trimesh model;
 public:
-    GeometryNode(void);
-    void setMesh(Trimesh * mesh);
-    void traverseNode(void);
+    GeometryNode(void) : Node(NULL, "Geometry") {}
+    GeometryNode(Node * parent) : Node(parent, "Geometry") {}
+    void setMesh(Trimesh model);
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
 
-GeometryNode::GeometryNode(void) : Node(NULL), mesh(NULL) {}
-
-void GeometryNode::setMesh(Trimesh * new_mesh)
+void GeometryNode::setMesh(Trimesh new_model)
 {
-    if (mesh != NULL)
-        delete mesh;
-
-    mesh = new_mesh;
+    model = new_model;
 }
 
-void GeometryNode::traverseNode(void)
+void GeometryNode::traverseNode(glm::mat4 transform)
 {
-    mesh->render();
+    glMatrixMode(GL_MODELVIEW);
+
+    vertex_t model_center = model.getCenter();
+
+    glTranslatef(model_center.pos[0], model_center.pos[1], model_center.pos[2]);
+    glMultMatrixf(glm::value_ptr(transform));
+    glTranslatef(-model_center.pos[0], -model_center.pos[1], -model_center.pos[2]);
+
+    model.render();
 }
 
 class TransformNode : public Node
 {
 private:
-    TRANS_ID type;
+    TRANS_ID transformation_type;
     float xyz[3];
     float angle;
 
 public:
-    void traverseNode(void);
+    TransformNode(void) : Node(NULL, "Transform") {}
+    TransformNode(Node * parent) : Node(parent, "Transform") {}
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
 
-void TransformNode::traverseNode(void)
+void TransformNode::traverseNode(glm::mat4 transform)
 {
-    switch(type)
+    switch(transformation_type)
     {
         case SCALE:
         {
-            glScalef(xyz[0], xyz[1], xyz[2]);
+            glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(xyz[0], xyz[1], xyz[2]));
+            transform = scale * transform;
             break;
         }
         case TRANSLATE:
         {
-            glTranslatef(xyz[0], xyz[1], xyz[2]);
+            glm::mat4 translate = glm::translate(glm::mat4(1.0), glm::vec3(xyz[0], xyz[1], xyz[2]));
+            transform = translate * transform;
             break;
         }
         case ROTATE:
         {
-            glRotatef(angle, xyz[0], xyz[1], xyz[2]);
+            glm::mat4 rotate = glm::rotate(glm::mat4(1.0), angle, glm::vec3(xyz[0], xyz[1], xyz[2]));
+            transform = rotate * transform;
             break;
         }
     }
 
-    Node::traverseNode();
+    Node::traverseNode(transform);
 }
 
 class AttributeNode : public Node
@@ -189,10 +213,12 @@ class AttributeNode : public Node
 private:
     MODE_ID render_mode;
 public:
-    void traverseNode(void);
+    AttributeNode(void) : Node(NULL, "Attribute") {}
+    AttributeNode(Node * parent) : Node(parent, "Attribute") {}
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
 
-void AttributeNode::traverseNode(void)
+void AttributeNode::traverseNode(glm::mat4 transform)
 {
     glPushAttrib(GL_POLYGON_BIT);
 
@@ -254,7 +280,7 @@ void AttributeNode::traverseNode(void)
             }
         }
 
-        Node::traverseNode();
+        Node::traverseNode(transform);
 
     glPopAttrib();
 }
@@ -263,19 +289,41 @@ class LightNode : public Node
 {
 private:
     LIGHT_ID type;
-    float pos[3];
 public:
-    void traverseNode(void);
+    LightNode(void) : Node(NULL, "Light") {}
+    LightNode(Node * parent) : Node(parent, "Light") {}
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
 
-void LightNode::traverseNode(void)
+void LightNode::traverseNode(glm::mat4 transform)
 {
-    
+    std::cout << "LIGHT" << std::endl;
+    // Have lights always start off at origin
+    glm::vec4 pos(0.0, 0.0, 0.0, 1.0);
+    // Have transformation matrix define where it should be placed
+    pos = transform * pos;
+
+    // // Set light
+    // glEnable(GL_LIGHTING);
 }
 
 class CameraNode : public Node
 {
-
+public:
+    CameraNode(void) : Node(NULL, "Camera") {}
+    CameraNode(Node * parent) : Node(parent, "Camera") {}
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
+
+void CameraNode::traverseNode(glm::mat4 transform)
+{
+    std::cout << "CAMERA" << std::endl;
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    gluLookAt(  0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
+
+    glMultMatrixf(glm::value_ptr(transform));
+}
 
 #endif
