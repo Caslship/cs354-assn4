@@ -1,3 +1,10 @@
+/*
+* Assignment #4
+* Name: Jason Palacios
+* UT EID: jap4839
+* UTCS: jason777
+*/
+
 #ifndef __NODE_H__
 #define __NODE_H__
 

@@ -1,5 +1,5 @@
 /*
-* Assignment #3
+* Assignment #4
 * Name: Jason Palacios
 * UT EID: jap4839
 * UTCS: jason777
@@ -10,7 +10,6 @@ COMMAND-LINE ARGUMENTS
 The program accepts a limited number of command line switches:
 
 -f <inputfilename>: Read in a file as a series of commands to execute.
--d: Run the program in debug mode.
 
 MOUSE CONTROLS
 --------------
@@ -45,23 +44,3 @@ through console output. Input a key sequence and press enter to execute a comman
 -- Q: Quit the application.
 -- [ENTER]: Execute current command.
 -- [ESC]: Quit application.
-
-DEBUG MODE
-----------
-The main point of debug mode was to aid me in ensuring program correctness. While in this
-mode, the user will experience:
-
--- Writing information about executed keyboard commands to console.
--- A square as the default model to display when no object is loaded.
--- Trippy colors while in "solid mode" (see "Keyboard Commands").
--- Rendering of normal vector lines protruding from models (changes with render mode).
--- An initial bounding rectangle for the object to keep track of V/W transformations
-
-EXTRA CREDIT
-------------
-There are a number of extra features added to the program that may possibly taken into 
-consideration when grading:
-
--- An extra command-line switch to start the program in debug mode
--- A debug mode that displays useful artifacts on the model or information in the console
--- Adjusted zoom of camera upon loading an object so that it fits comfortably on the screen

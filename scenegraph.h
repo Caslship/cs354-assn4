@@ -1,3 +1,10 @@
+/*
+* Assignment #4
+* Name: Jason Palacios
+* UT EID: jap4839
+* UTCS: jason777
+*/
+
 #ifndef __SCENEGRAPH_H__
 #define __SCENEGRAPH_H__
 
