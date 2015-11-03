@@ -17,6 +17,7 @@
 #include <iostream>
 #include "enums.h"
 #include "geom.h"
+#include "loader.h"
 
 class Node
 {
@@ -197,13 +198,58 @@ private:
 public:
     GeometryNode(void) : Node(NULL, "Geometry") {}
     GeometryNode(Node * parent) : Node(parent, "Geometry") {}
-    void setMesh(Trimesh model);
+    void setMesh(const char * file_path_cstring);
     void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
 
-void GeometryNode::setMesh(Trimesh new_model)
+void GeometryNode::setMesh(const char * file_path_cstring)
 {
+    std::string file_path(file_path_cstring);
+    int file_path_length = file_path.length();
+    int pos = 0;
+
+    // Skip spaces but make sure not to hit the end of the string 
+    while (pos < file_path_length && file_path[pos] ==  ' ')
+        pos++;
+
+    if (pos == file_path_length)
+        return;
+
+    // Read file name and update position
+    std::string file_name = "";
+    while (pos < file_path_length && file_path[pos] != ' ')
+    {
+        file_name += file_path[pos++];
+    }
+
+    // Append .obj extension to the string if needed
+    int ext_pos = file_name.find(".obj");
+    if (ext_pos == std::string::npos || ext_pos != file_name.length() - 4)
+        file_name += ".obj";
+
+    // Load object file into Trimesh object
+    TrimeshLoader model_loader;
+    Trimesh new_model;
+
+    // Fail if the object failed to load
+    if (!model_loader.loadOBJ(file_name.c_str(), &new_model))
+        return;
+
     model = new_model;
+
+    // Adjust camera for new object
+    // look_at_pos = model.getCenter();
+    // zoom_level = model.getBoundingLength();
+    // zoom_level = (zoom_level < VIEWING_DISTANCE_MIN ? VIEWING_DISTANCE_MIN : zoom_level);
+    // orbit_theta = orbit_phi = orbit_delta = pan_x = pan_y = 0.0;
+    // g_width = win_width;
+    // g_height = win_height;
+
+    // glMatrixMode(GL_PROJECTION);
+    // glLoadIdentity();
+    // gluPerspective(45.0, (float)g_width / (float)g_height, g_near_plane, g_far_plane);
+
+    // glMatrixMode(GL_MODELVIEW);
 }
 
 void GeometryNode::traverseNode(glm::mat4 transform)
@@ -409,7 +455,7 @@ void CameraNode::traverseNode(glm::mat4 transform)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    gluLookAt(  0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
+    gluLookAt(  0.0, 0.0, -20.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
 
     glMultMatrixf(glm::value_ptr(transform));
 }

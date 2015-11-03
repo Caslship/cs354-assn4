@@ -17,7 +17,7 @@ endif
 CFLAGS= -std=c++11 -O2
 PROD= scenegraphviewer
 
-INCLUDES= -I./include
+INCLUDES= -isystem ./include
 HDRS= $(shell ls *.h)
 SRCS= $(shell ls *.cpp)
 OBJS= $(patsubst %.cpp, %.o, $(SRCS))

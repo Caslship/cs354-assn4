@@ -77,7 +77,7 @@ GLUI_Button * add_child_node;
 GLUI_Button * add_parent_node;
 GLUI_Panel * curr_node_panel;
 GLUI_Panel * attr_node_panel;
-GLUI_Listbox * render_mode_select;
+GLUI_Listbox * render_type_select;
 GLUI_Panel * geom_node_panel;
 GLUI_EditText * geometry_path;
 GLUI_Panel * transform_node_panel;
@@ -92,10 +92,11 @@ GLUI_Button * delete_node;
 
 int child_node_index = 0;
 int node_type_index = 0;
+int render_type_index = 0;
 int transform_type_index = 0;
 int transform_coord_type_index = 0;
 
-string render_mode_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
+string render_type_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
 string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Light" };
 string transform_type_list[] = { "Scale", "Translate", "Rotate" };
 string transform_coord_type_list[] = { "World", "View" };
@@ -234,7 +235,9 @@ void Control(int control_id)
             Node * child_node = curr_node->getChild(child_node_index);
 
             if (child_node != NULL)
+            {
                 scenegraph.setCurrentNode(child_node);
+            }
 
             break;
         }
@@ -318,13 +321,24 @@ void Control(int control_id)
         }
         case CURR_NODE_UPDATE_B_ID:
         {
-            if (curr_node->getNodeType() == "Transform")
+            string curr_node_type = curr_node->getNodeType();
+
+            if (curr_node_type == "Attribute")
+            {
+                string render_type = render_type_list[render_type_index];
+                ((AttributeNode *)curr_node)->setParams(render_type);
+            }
+            else if (curr_node_type == "Geometry")
+            {
+                ((GeometryNode *)curr_node)->setMesh(geometry_path->get_text());
+            }
+            else if (curr_node_type == "Transform")
             {
                 string transform_type = transform_type_list[transform_type_index];
                 float xyz[3] = { x_param->get_float_val(), y_param->get_float_val(), z_param->get_float_val() };
                 float theta = theta_param->get_float_val();
 
-                ((TransformNode*)curr_node)->setParams(transform_type, xyz, theta);
+                ((TransformNode *)curr_node)->setParams(transform_type, xyz, theta);
             }
             break;
         }

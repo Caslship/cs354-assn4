@@ -21,16 +21,6 @@
 
 using namespace std;
 
-// For some reason, having these as local objects cause segmentation faults
-static TrimeshLoader model_loader;
-static ifstream ifs;
-static string prog_switch = "";
-static string file_name = "";
-static string x = "";
-static string y = "";
-static string z = "";
-static string angle = "";
-
 // Initalize GLUT and window properties
 void InitializeWindow(int& argc, char ** argv)
 {
@@ -100,15 +90,15 @@ void InitializeGUI(void)
         attr_node_panel = glui->add_panel_to_panel(curr_node_panel, "Attribute");
             
             // Render mode selection listbox
-            render_mode_select = glui->add_listbox_to_panel(attr_node_panel, "Render ");
+            render_type_select = glui->add_listbox_to_panel(attr_node_panel, "Render ");
             for(int i = 0; i < 6; i++ )
-                render_mode_select->add_item(i, render_mode_list[i].c_str());
+                render_type_select->add_item(i, render_type_list[i].c_str());
 
         // Geometry panel
         geom_node_panel = glui->add_panel_to_panel(curr_node_panel, "Geometry");
             
             // Obj filepath textbox
-            geometry_path = glui->add_edittext_to_panel(geom_node_panel, "Obj");
+            geometry_path = glui->add_edittext_to_panel(geom_node_panel, "Obj", GLUI_EDITTEXT_TEXT);
 
         // Transform panel
         transform_node_panel = glui->add_panel_to_panel(curr_node_panel, "Transformation");
@@ -163,7 +153,7 @@ void UpdateGUI(int old_children_vec_size)
     add_parent_node->enable();
     curr_node_panel->enable();
     attr_node_panel->enable();
-    render_mode_select->enable();
+    render_type_select->enable();
     geom_node_panel->enable();
     geometry_path->enable();
     transform_node_panel->enable();
