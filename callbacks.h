@@ -69,9 +69,37 @@ extern bool ExecuteCommand();
 /// GUI
 int main_window;
 GLUI * glui;
+GLUI_Panel * scene_graph_panel;
+GLUI_Panel * select_node_panel;
+GLUI_Listbox * child_node_select;
+GLUI_Button * select_child_node;
+GLUI_Button * select_parent_node;
+GLUI_Panel * add_node_panel;
+GLUI_Listbox * node_type_select;
+GLUI_Button * add_child_node;
+GLUI_Button * add_parent_node;
+GLUI_Panel * curr_node_panel;
+GLUI_Panel * attr_node_panel;
+GLUI_Listbox * render_mode_select;
+GLUI_Panel * geom_node_panel;
+GLUI_EditText * geometry_path;
+GLUI_Panel * transform_node_panel;
+GLUI_Listbox * transform_type_select;
+GLUI_Listbox * transform_coord_type_select;
+GLUI_EditText * x_param;
+GLUI_EditText * y_param;
+GLUI_EditText * z_param;
+GLUI_EditText * theta_param;
+GLUI_Button * update_node;
+GLUI_Button * delete_node;
 
 int child_node_index = 0;
 int node_type_index = 0;
+
+string render_mode_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
+string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Light" };
+string transform_type_list[] = { "Scale", "Translate", "Rotate" };
+string transform_coord_type_list[] = { "World", "View" };
 
 MODE_ID render_map[] = { MODE_POINTS, MODE_WIREFRAME, MODE_SOLID, MODE_SHADED, MODE_FACE_NORMS, MODE_VERT_NORMS };
 extern void UpdateGUI(int);
@@ -313,6 +341,21 @@ void Control(int control_id)
                     break;
                 }
             }
+            break;
+        }
+        case CURR_NODE_UPDATE_B_ID:
+        {
+            if (curr_node->getNodeType() == "Transform")
+            {
+                std::cout << x_param->get_float_val() << std::endl;
+                std::cout << y_param->get_float_val() << std::endl;
+                std::cout << z_param->get_float_val() << std::endl;
+                std::cout << theta_param->get_float_val() << std::endl;
+            }
+            break;
+        }
+        case CURR_NODE_DELETE_B_ID:
+        {
             break;
         }
     }

@@ -9,7 +9,6 @@
 #define __SCENEGRAPH_H__
 
 #include "node.h"
-#include <iostream>
 
 class SceneGraphContainer
 {

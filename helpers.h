@@ -58,35 +58,6 @@ void RegisterCallbacks(void)
     glutMotionFunc(MouseMotion);
 }
 
-string render_mode_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
-string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Light" };
-string transform_type_list[] = { "Scale", "Translate", "Rotate" };
-string transform_coord_type_list[] = { "World", "View" };
-
-GLUI_Panel * scene_graph_panel;
-GLUI_Panel * select_node_panel;
-GLUI_Listbox * child_node_select;
-GLUI_Button * select_child_node;
-GLUI_Button * select_parent_node;
-GLUI_Panel * add_node_panel;
-GLUI_Listbox * node_type_select;
-GLUI_Button * add_child_node;
-GLUI_Button * add_parent_node;
-GLUI_Panel * curr_node_panel;
-GLUI_Panel * attr_node_panel;
-GLUI_Listbox * render_mode_select;
-GLUI_Panel * geom_node_panel;
-GLUI_EditText * geometry_path;
-GLUI_Panel * transform_node_panel;
-GLUI_Listbox * transform_type_select;
-GLUI_Listbox * transform_coord_type_select;
-GLUI_EditText * x_param;
-GLUI_EditText * y_param;
-GLUI_EditText * z_param;
-GLUI_EditText * theta_param;
-GLUI_Button * update_node;
-GLUI_Button * delete_node;
-
 void InitializeGUI(void)
 {
     glui = GLUI_Master.create_glui_subwindow(main_window, GLUI_SUBWINDOW_LEFT);
@@ -161,8 +132,8 @@ void InitializeGUI(void)
             theta_param = glui->add_edittext_to_panel(transform_node_panel, "Theta");
 
         // Apply node modification buttons
-        update_node = glui->add_button_to_panel(curr_node_panel, "Update");
-        delete_node = glui->add_button_to_panel(curr_node_panel, "Delete");
+        update_node = glui->add_button_to_panel(curr_node_panel, "Update", CURR_NODE_UPDATE_B_ID, Control);
+        delete_node = glui->add_button_to_panel(curr_node_panel, "Delete", CURR_NODE_DELETE_B_ID, Control);
 
     curr_node_panel->set_alignment(GLUI_ALIGN_LEFT);
 
