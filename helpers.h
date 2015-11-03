@@ -15,7 +15,7 @@
 #include <string>
 #include "enums.h"
 #include "callbacks.h"
-#include "node.h"
+#include "scenegraph.h"
 #include "geom.h"
 #include "loader.h"
 
@@ -58,13 +58,6 @@ void RegisterCallbacks(void)
     glutMotionFunc(MouseMotion);
 }
 
-void InitializeSceneGraph(void)
-{
-    CameraNode * camera_node = new CameraNode(root_node);
-    LightNode * light_node = new LightNode(root_node);
-    ObjectNode * object_node = new ObjectNode(root_node);
-}
-
 string render_mode_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
 string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Light" };
 string transform_type_list[] = { "Scale", "Translate", "Rotate" };
@@ -96,7 +89,7 @@ GLUI_Button * delete_node;
 
 void InitializeGUI(void)
 {
-    glui = GLUI_Master.create_glui_subwindow(main_window, GLUI_SUBWINDOW_RIGHT);
+    glui = GLUI_Master.create_glui_subwindow(main_window, GLUI_SUBWINDOW_LEFT);
 
     // Scene graph panel
     scene_graph_panel = glui->add_panel("Edit Scene Graph");
@@ -106,38 +99,28 @@ void InitializeGUI(void)
             
             // Child selection listbox
             child_node_select = glui->add_listbox_to_panel(select_node_panel, "Child ", &child_node_index, CHILD_NODE_LB_ID, Control);
-            child_node_select->set_alignment(GLUI_ALIGN_RIGHT);
 
             glui->add_separator_to_panel(select_node_panel);
 
             // Node selection buttons
             select_child_node = glui->add_button_to_panel(select_node_panel, "Select Child", CHILD_NODE_SELECT_B_ID, Control);
-            select_child_node->set_alignment(GLUI_ALIGN_RIGHT);
             select_parent_node = glui->add_button_to_panel(select_node_panel, "Select Parent", PARENT_NODE_SELECT_B_ID, Control);
-            select_parent_node->set_alignment(GLUI_ALIGN_RIGHT);
-        
-        select_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
 
         // Node addition panel
         add_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Addition");
             
             // Node type selection listbox
-            node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ");
+            node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ", &node_type_index, NODE_TYPE_LB_ID, Control);
             for (int i = 0; i < 5; i++)
                 node_type_select->add_item(i, node_type_list[i].c_str());
-            node_type_select->set_alignment(GLUI_ALIGN_RIGHT);
 
             glui->add_separator_to_panel(add_node_panel);
 
             // Node addition buttons
-            add_child_node = glui->add_button_to_panel(add_node_panel, "Add Child");
-            add_child_node->set_alignment(GLUI_ALIGN_RIGHT);
-            add_parent_node = glui->add_button_to_panel(add_node_panel, "Add Parent");
-            add_parent_node->set_alignment(GLUI_ALIGN_RIGHT);
-            
-        add_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
+            add_child_node = glui->add_button_to_panel(add_node_panel, "Add Child", CHILD_NODE_ADD_B_ID, Control);
+            add_parent_node = glui->add_button_to_panel(add_node_panel, "Add Parent", PARENT_NODE_ADD_B_ID, Control);
 
-    scene_graph_panel->set_alignment(GLUI_ALIGN_RIGHT);
+    scene_graph_panel->set_alignment(GLUI_ALIGN_LEFT);
 
     // Current node panel
     curr_node_panel = glui->add_panel("Edit Current Node");
@@ -145,54 +128,43 @@ void InitializeGUI(void)
         // Attribute panel
         attr_node_panel = glui->add_panel_to_panel(curr_node_panel, "Attribute");
             
+            // Render mode selection listbox
             render_mode_select = glui->add_listbox_to_panel(attr_node_panel, "Render ");
             for(int i = 0; i < 6; i++ )
                 render_mode_select->add_item(i, render_mode_list[i].c_str());
-            render_mode_select->set_alignment(GLUI_ALIGN_RIGHT);
-
-        attr_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
 
         // Geometry panel
         geom_node_panel = glui->add_panel_to_panel(curr_node_panel, "Geometry");
             
+            // Obj filepath textbox
             geometry_path = glui->add_edittext_to_panel(geom_node_panel, "Obj");
-            geometry_path->set_alignment(GLUI_ALIGN_RIGHT);
-
-        geom_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
 
         // Transform panel
         transform_node_panel = glui->add_panel_to_panel(curr_node_panel, "Transformation");
 
+            // Transform type selection listbox
             transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ");
             for(int i = 0; i < 3; i++)
                 transform_type_select->add_item(i, transform_type_list[i].c_str());
-            transform_type_select->set_alignment(GLUI_ALIGN_RIGHT);
 
+            // Coordinate type selection listbox
             transform_coord_type_select = glui->add_listbox_to_panel(transform_node_panel, "Coords ");
             for (int i = 0; i < 2; i++)
                 transform_coord_type_select->add_item(i, transform_coord_type_list[i].c_str());
-            transform_coord_type_select->set_alignment(GLUI_ALIGN_RIGHT);
 
             glui->add_separator_to_panel(transform_node_panel);
 
+            // Transformation parameter textboxes
             x_param = glui->add_edittext_to_panel(transform_node_panel, "X");
-            x_param->set_alignment(GLUI_ALIGN_RIGHT);
             y_param = glui->add_edittext_to_panel(transform_node_panel, "Y");
-            y_param->set_alignment(GLUI_ALIGN_RIGHT);
             z_param = glui->add_edittext_to_panel(transform_node_panel, "Z");
-            z_param->set_alignment(GLUI_ALIGN_RIGHT);
             theta_param = glui->add_edittext_to_panel(transform_node_panel, "Theta");
-            theta_param->set_alignment(GLUI_ALIGN_RIGHT);
-
-        transform_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
 
         // Apply node modification buttons
         update_node = glui->add_button_to_panel(curr_node_panel, "Update");
-        update_node->set_alignment(GLUI_ALIGN_RIGHT);
         delete_node = glui->add_button_to_panel(curr_node_panel, "Delete");
-        delete_node->set_alignment(GLUI_ALIGN_RIGHT);
 
-    curr_node_panel->set_alignment(GLUI_ALIGN_RIGHT);
+    curr_node_panel->set_alignment(GLUI_ALIGN_LEFT);
 
     // Update GUI according to current node
     UpdateGUI(0);
@@ -205,6 +177,9 @@ void InitializeGUI(void)
 
 void UpdateGUI(int old_children_vec_size)
 {
+    Node * root_node = scenegraph.getRootNode();
+    Node * curr_node = scenegraph.getCurrentNode();
+
     // Start every component off in an enabled state
     scene_graph_panel->enable();
     select_node_panel->enable();
@@ -278,72 +253,6 @@ void UpdateGUI(int old_children_vec_size)
 
     if (curr_node_type == "Light")
         update_node->disable();
-}
-
-// Read command line arguments
-void ExecuteArguments(int& argc, char ** argv)
-{
-    // Loop through arguments
-    int i = 1;
-    while ((argc - i) > 0)
-    {
-        prog_switch.assign(argv[i]);
-
-        if (prog_switch.compare("-f") == 0)
-        {
-            // Load an input file
-
-            i++;
-
-            if ((argc - i) > 0)
-            {
-                cout << "Load input file: " << argv[i] << endl;
-
-                // Open file
-                ifs.open(argv[i]);
-
-                if (!ifs.is_open() || !ifs.good() || ifs.fail())
-                {
-                    cout << "Invalid input file!" << endl;
-                    cout.flush();
-                    return;
-                }
-
-                // Execute each line as a command
-                while (getline(ifs, command))
-                {
-                    if (!ExecuteCommand())
-                    {
-                        cout << "Invalid command or parameters!" << endl;
-                        cout.flush();
-                        return;
-                    }
-
-                    command.clear();
-                }
-
-                ifs.close();
-
-                glutPostRedisplay();
-            }
-            else
-            {
-                cout << "Invalid input file!" << endl;
-                cout.flush();
-                return;
-            }
-        }
-        else
-        {
-            cout << "Invalid switch!" << endl;
-            cout.flush();
-            return;
-        }
-
-        i++;
-    }
-
-    cout.flush();
 }
 
 // Executes a command and the return value indicates success or failure
@@ -619,7 +528,7 @@ bool ExecuteCommand(void)
             {
                 if ((found_mode = (mode_type == render_map[i])))
                 {
-                    curr_render = i;
+                    //curr_render = i;
                     break;
                 }
             }

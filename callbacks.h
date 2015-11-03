@@ -12,8 +12,10 @@
 #include <GL/glui.h>
 #include <string>
 #include <cctype>
+#include <iostream>
 #include "geom.h"
 #include "enums.h"
+#include "scenegraph.h"
 #include "node.h"
 
 using namespace std;
@@ -31,8 +33,7 @@ static float g_near_plane = 0.01;
 static float g_far_plane = 10000.0;
 
 /// Scene graph
-static Node * root_node = new Node();
-static Node * curr_node = root_node;
+static SceneGraphContainer scenegraph;
 
 /// Transformations
 static TRANS_FLAG_ID trans_flag = WORLD_COORDS;
@@ -68,8 +69,10 @@ extern bool ExecuteCommand();
 /// GUI
 int main_window;
 GLUI * glui;
-int curr_render = 2;
+
 int child_node_index = 0;
+int node_type_index = 0;
+
 MODE_ID render_map[] = { MODE_POINTS, MODE_WIREFRAME, MODE_SOLID, MODE_SHADED, MODE_FACE_NORMS, MODE_VERT_NORMS };
 extern void UpdateGUI(int);
 
@@ -93,7 +96,7 @@ void Display(void)
     SetLighting();
 
     // Traverse the scene graph
-    root_node->traverseNode();
+    scenegraph.traverseGraph();
 
     glutSwapBuffers();
 }
@@ -207,13 +210,12 @@ void Keyboard(unsigned char key, int x, int y)
 void Idle(void)
 {
     if (glutGetWindow() != main_window) 
-        glutSetWindow(main_window);
-
-    glutPostRedisplay();   
+        glutSetWindow(main_window);   
 }
 
 void Control(int control_id)
 {
+    Node * curr_node = scenegraph.getCurrentNode();
     int old_children_vec_size = curr_node->getChildCount();
 
     switch(control_id)
@@ -227,7 +229,7 @@ void Control(int control_id)
             Node * child_node = curr_node->getChild(child_node_index);
 
             if (child_node != NULL)
-                curr_node = child_node;
+                scenegraph.setCurrentNode(child_node);
 
             break;
         }
@@ -236,8 +238,81 @@ void Control(int control_id)
             Node * parent_node = curr_node->getParent();
 
             if (parent_node != NULL)
-                curr_node = parent_node;
+                scenegraph.setCurrentNode(parent_node);
 
+            break;
+        }
+        case NODE_TYPE_LB_ID:
+        {
+            break;
+        }
+        case CHILD_NODE_ADD_B_ID:
+        {
+            switch(node_type_index)
+            {
+                case 0:
+                {
+                    ObjectNode * object_node = new ObjectNode(curr_node);
+                    break;
+                }
+                case 1:
+                {
+                    GeometryNode * geom_node = new GeometryNode(curr_node);
+                    break;
+                }
+                case 2:
+                {
+                    TransformNode * transform_node = new TransformNode(curr_node);
+                    break;
+                }
+                case 3:
+                {
+                    AttributeNode * attr_node = new AttributeNode(curr_node);
+                    break;
+                }
+                case 4:
+                {
+                    LightNode * light_node = new LightNode(curr_node);
+                    break;
+                }
+            }
+            break;
+        }
+        case PARENT_NODE_ADD_B_ID:
+        {
+            switch(node_type_index)
+            {
+                case 0:
+                {
+                    ObjectNode * object_node = new ObjectNode();
+                    curr_node->addParent(object_node);
+                    break;
+                }
+                case 1:
+                {
+                    GeometryNode * geom_node = new GeometryNode();
+                    curr_node->addParent(geom_node);
+                    break;
+                }
+                case 2:
+                {
+                    TransformNode * transform_node = new TransformNode();
+                    curr_node->addParent(transform_node);
+                    break;
+                }
+                case 3:
+                {
+                    AttributeNode * attr_node = new AttributeNode();
+                    curr_node->addParent(attr_node);
+                    break;
+                }
+                case 4:
+                {
+                    LightNode * light_node = new LightNode();
+                    curr_node->addParent(light_node);
+                    break;
+                }
+            }
             break;
         }
     }

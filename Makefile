@@ -15,7 +15,7 @@ ifeq ($(UNAME),Windows)
 endif
 
 CFLAGS= -std=c++11 -O2
-PROD= scene_graph_viewer
+PROD= scenegraphviewer
 
 INCLUDES= -I./include
 HDRS= $(shell ls *.h)

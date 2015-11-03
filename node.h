@@ -28,7 +28,7 @@ public:
     int getChildCount(void);
     void addChild(Node * child);
     void addParent(Node * new_parent);
-    void deleteChild(Node * child);
+    // void deleteChild(Node * child);
     virtual void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };
 
@@ -38,7 +38,9 @@ Node::Node(Node * parent, std::string node_type)
 {
     this->node_type = node_type;
     this->parent = NULL;
-    this->addParent(parent);
+
+    if (parent != NULL)
+        addParent(parent);
 }
 
 Node::~Node(void)
@@ -47,7 +49,9 @@ Node::~Node(void)
     int children_vec_size = children_vec.size();
     for (int i = 0; i < children_vec_size; i++)
     {
-        delete children_vec[i];
+        // The child's deconstructor erases the child from this list, so we have to delete whatever is at the front
+        Node * child = children_vec.front();
+        delete child;
     }
     children_vec.clear();
 
@@ -60,7 +64,7 @@ Node::~Node(void)
             if (parent->children_vec[i] == this)
             {
                 // Erase from list
-                parent->children_vec.erase(children_vec.begin() + i);
+                parent->children_vec.erase(parent->children_vec.begin() + i);
                 break;
             }
         }
@@ -111,6 +115,10 @@ void Node::addChild(Node * child)
 
 void Node::addParent(Node * new_parent)
 {
+    // We don't want breaks in the graph
+    if (new_parent == NULL)
+        return;
+
     // Inject  between current parent if one exists
     if (parent != NULL)
     {
@@ -135,19 +143,19 @@ void Node::addParent(Node * new_parent)
     parent = new_parent;
 }
 
-void Node::deleteChild(Node * child)
-{
-    int children_vec_size = children_vec.size();
-    for (int i = 0; i < children_vec_size; i++)
-    {
-        if (children_vec[i] == child)
-        {
-            // Deconstructor takes care of deleting the element from the vector
-            delete child;
-            break;
-        }
-    }
-}
+// void Node::deleteChild(Node * child)
+// {
+//     int children_vec_size = children_vec.size();
+//     for (int i = 0; i < children_vec_size; i++)
+//     {
+//         if (children_vec[i] == child)
+//         {
+//             // Deconstructor takes care of deleting the element from the vector
+//             delete child;
+//             break;
+//         }
+//     }
+// }
 
 void Node::traverseNode(glm::mat4 transform)
 {
@@ -213,7 +221,7 @@ private:
 
 public:
     TransformNode(void) : Node(NULL, "Transform") {}
-    TransformNode(Node * parent) : Node(parent, "Transform") {}
+    TransformNode(Node * parent) : transformation_type(INVALID), Node(parent, "Transform") {}
     TRANS_ID getTransformType(void);
     void traverseNode(glm::mat4 transform = glm::mat4(1.0));
 };

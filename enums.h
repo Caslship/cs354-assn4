@@ -13,7 +13,10 @@ enum GLUI_WIDGET_ID
 {
     CHILD_NODE_LB_ID = 200,
     CHILD_NODE_SELECT_B_ID = 201,
-    PARENT_NODE_SELECT_B_ID = 202
+    PARENT_NODE_SELECT_B_ID = 202,
+    NODE_TYPE_LB_ID = 203,
+    CHILD_NODE_ADD_B_ID = 204,
+    PARENT_NODE_ADD_B_ID = 205
 };
 
 
@@ -35,7 +38,8 @@ enum TRANS_FLAG_ID
 // Type of transformation
 enum TRANS_ID
 {
-    SCALE = 1,      // Scale
+    INVALID = 0,
+    SCALE,          // Scale
     TRANSLATE,      // Translate
     ROTATE          // Rotate
 };

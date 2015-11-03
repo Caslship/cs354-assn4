@@ -14,9 +14,7 @@ int main(int argc, char ** argv)
     InitializeWindow(argc, argv);
     InitializeGraphics();
     RegisterCallbacks();
-    InitializeSceneGraph();
     InitializeGUI();
-    ExecuteArguments(argc, argv);
 
     glutMainLoop();
     return 0;
