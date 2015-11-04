@@ -16,6 +16,7 @@ private:
     Node * root_node;
     Node * camera_node;
     Node * curr_node;
+    int light_count;
 public:
     SceneGraphContainer(void);
     ~SceneGraphContainer(void);
@@ -32,6 +33,7 @@ SceneGraphContainer::SceneGraphContainer(void)
     curr_node = root_node;
     camera_node = new CameraNode(root_node);
     LightNode * light_node = new LightNode(root_node);
+    light_count = 1;
     ObjectNode * object_node = new ObjectNode(root_node);
 }
 

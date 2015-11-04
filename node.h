@@ -38,6 +38,7 @@ public:
     int getChildCount(void);
     void addChild(Node * child);
     void addParent(Node * new_parent);
+    void removeNode(void);
     virtual void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
 
@@ -150,6 +151,40 @@ void Node::addParent(Node * new_parent)
     new_parent->children_vec.push_back(this);
     // Set as new parent
     parent = new_parent;
+}
+
+void Node::removeNode(void)
+{
+    // Parent inheritance of current node's children applies to every node but the root
+    if (parent != NULL)
+    {
+        // Search for current node in old parent's list
+        int parent_children_vec_size = parent->children_vec.size();
+        for (int i = 0; i < parent_children_vec_size; i++)
+        {
+            if (parent->children_vec[i] == this)
+            {
+                // Erase from list
+                parent->children_vec.erase(parent->children_vec.begin() + i);
+
+                // Move all children to parent and set the parent as their parent
+                int children_vec_size = children_vec.size();
+                for (int i = 0; i < children_vec_size; i++)
+                {
+                    parent->children_vec.push_back(children_vec[i]);
+                    children_vec[i]->parent = parent;
+                }
+                // Remove all ties to children
+                children_vec.clear();
+                break;
+            }
+        }
+        // Remove all ties to parent
+        parent = NULL;
+    }
+
+    // We want to isolate the node completely before deleting so that it doesn't affect the parent and children
+    delete this;
 }
 
 void Node::traverseNode(glm::mat4 transform, std::string render_type)

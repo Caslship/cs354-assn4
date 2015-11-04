@@ -356,6 +356,13 @@ void Control(int control_id)
         }
         case CURR_NODE_DELETE_B_ID:
         {
+            Node * parent = curr_node->getParent();
+
+            if (parent != NULL && curr_node != scenegraph.getRootNode() && curr_node->getNodeType() != "Camera")
+            {
+                curr_node->removeNode();
+                scenegraph.setCurrentNode(parent);
+            }
             break;
         }
     }
