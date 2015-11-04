@@ -453,6 +453,7 @@ class LightNode : public Node
 {
 private:
     std::string light_type;
+    GLenum light_id;
 public:
     LightNode(void) : Node(NULL, "Light") {}
     LightNode(Node * parent) : Node(parent, "Light") {}

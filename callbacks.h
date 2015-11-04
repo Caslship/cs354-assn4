@@ -63,7 +63,7 @@ static float g_light_direction[4] = {};
 static string command = "";
 extern bool ExecuteCommand();
 
-/// GUI
+/// GUI (widgets)
 int main_window;
 GLUI * glui;
 GLUI_Panel * scene_graph_panel;
@@ -90,19 +90,26 @@ GLUI_EditText * theta_param;
 GLUI_Panel * camera_node_panel;
 GLUI_EditText * vx_param;
 GLUI_EditText * vy_param;
+GLUI_Panel * light_node_panel;
+GLUI_Listbox * light_type_select;
 GLUI_Button * update_node;
 GLUI_Button * delete_node;
 
+/// GUI (live variables)
 int child_node_index = 0;
 int node_type_index = 0;
 int render_type_index = 0;
 int transform_type_index = 0;
 int transform_coord_type_index = 0;
+int light_type_index = 0;
 
+/// GUI (listbox and other constant contents)
 string render_type_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
 string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Light" };
 string transform_type_list[] = { "Scale", "Translate", "Rotate" };
 string transform_coord_type_list[] = { "World", "View" };
+string light_type_list[] = { "Point", "Directional" };
+const GLenum light_ids[] = { GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7 };
 
 extern void UpdateGUI(int);
 
@@ -369,7 +376,7 @@ void Control(int control_id)
             {
                 if (curr_node_type == "Light" && !scenegraph.decLightCount())
                     break;
-                
+
                 curr_node->removeNode();
                 scenegraph.setCurrentNode(parent);
             }

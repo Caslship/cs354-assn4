@@ -126,8 +126,17 @@ void InitializeGUI(void)
         // Camera panel
         camera_node_panel = glui->add_panel_to_panel(curr_node_panel, "Camera");
 
+            // Viewport parameter textboxes
             vx_param = glui->add_edittext_to_panel(camera_node_panel, "Viewport X", GLUI_EDITTEXT_INT);
             vy_param = glui->add_edittext_to_panel(camera_node_panel, "Viewport Y", GLUI_EDITTEXT_INT);
+
+        // Light panel
+        light_node_panel = glui->add_panel_to_panel(curr_node_panel, "Light");
+
+            // Light type selection listbox
+            light_type_select = glui->add_listbox_to_panel(light_node_panel, "Type ", &light_type_index);
+            for (int i = 0; i < 2; i++)
+                light_type_select->add_item(i, light_type_list[i].c_str());
 
         // Apply node modification buttons
         update_node = glui->add_button_to_panel(curr_node_panel, "Update", CURR_NODE_UPDATE_B_ID, Control);
@@ -161,6 +170,8 @@ void UpdateGUI(int old_children_vec_size)
     transform_node_panel->disable();
 
     camera_node_panel->disable();
+
+    light_node_panel->disable();
 
     update_node->disable();
     delete_node->disable();
@@ -229,6 +240,8 @@ void UpdateGUI(int old_children_vec_size)
     }
     else if (is_camera_type)
         camera_node_panel->enable();
+    else if (is_light_type)
+        light_node_panel->enable();
 
     if (!is_camera_type && !is_root && !(is_light_type && light_count == 1))
         delete_node->enable();
