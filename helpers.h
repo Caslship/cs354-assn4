@@ -170,6 +170,7 @@ void UpdateGUI(int old_children_vec_size)
     string curr_node_type = curr_node->getNodeType();
     vector<string> children_node_type_vec = curr_node->getChildNodeTypes();
     int children_vec_size = curr_node->getChildCount();
+    int light_count = scenegraph.getLightCount();
 
     bool has_children = (children_vec_size > 0);
     bool is_root = (curr_node == root_node);
@@ -201,7 +202,7 @@ void UpdateGUI(int old_children_vec_size)
     if (!is_root && !camera_node_selected && !light_node_selected && !geom_node_selected)
         add_parent_node->enable();
 
-    if (!is_camera_type && !is_geom_type && !is_light_type)
+    if (!is_camera_type && !is_geom_type && !is_light_type && !(light_node_selected && light_count == 8))
         add_child_node->enable();
 
     if (is_attr_type)
@@ -227,11 +228,9 @@ void UpdateGUI(int old_children_vec_size)
         theta_param->set_float_val(((TransformNode *)curr_node)->getTheta());
     }
     else if (is_camera_type)
-    {
         camera_node_panel->enable();
-    }
 
-    if (!is_camera_type && !is_root)
+    if (!is_camera_type && !is_root && !(is_light_type && light_count == 1))
         delete_node->enable();
 
     if (!is_root)

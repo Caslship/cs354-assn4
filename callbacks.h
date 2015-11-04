@@ -247,6 +247,7 @@ void Control(int control_id)
         case NODE_TYPE_LB_ID:
         case TRANSFORM_TYPE_LB_ID:
         {
+            // The only thing we need is for the GUI to update
             break;
         }
         case CHILD_NODE_ADD_B_ID:
@@ -275,7 +276,9 @@ void Control(int control_id)
                 }
                 case 4:
                 {
-                    LightNode * light_node = new LightNode(curr_node);
+                    if (scenegraph.incLightCount())
+                        LightNode * light_node = new LightNode(curr_node);
+
                     break;
                 }
             }
@@ -311,8 +314,11 @@ void Control(int control_id)
                 }
                 case 4:
                 {
-                    LightNode * light_node = new LightNode();
-                    curr_node->addParent(light_node);
+                    if (scenegraph.incLightCount())
+                    {
+                        LightNode * light_node = new LightNode();
+                        curr_node->addParent(light_node);
+                    }
                     break;
                 }
             }
@@ -357,9 +363,13 @@ void Control(int control_id)
         case CURR_NODE_DELETE_B_ID:
         {
             Node * parent = curr_node->getParent();
+            string curr_node_type  = curr_node->getNodeType();
 
-            if (parent != NULL && curr_node != scenegraph.getRootNode() && curr_node->getNodeType() != "Camera")
+            if (parent != NULL && curr_node != scenegraph.getRootNode() && curr_node_type != "Camera")
             {
+                if (curr_node_type == "Light" && !scenegraph.decLightCount())
+                    break;
+                
                 curr_node->removeNode();
                 scenegraph.setCurrentNode(parent);
             }

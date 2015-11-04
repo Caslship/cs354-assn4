@@ -171,7 +171,8 @@ void Node::removeNode(void)
                 int children_vec_size = children_vec.size();
                 for (int j = 0; j < children_vec_size; j++)
                 {
-                    parent->children_vec.insert(parent->children_vec.begin() + i + j children_vec[i]);
+                    // We have to maintain order in parent's child list
+                    parent->children_vec.insert(parent->children_vec.begin() + i + j, children_vec[j]);
                     children_vec[j]->parent = parent;
                 }
                 // Remove all ties to children
@@ -425,7 +426,6 @@ void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
         // Shaded mode
         glDisable(GL_NORMALIZE);
         glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
         glEnable(GL_COLOR_MATERIAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
@@ -434,7 +434,6 @@ void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
         // Face normals mode
         glEnable(GL_NORMALIZE);
         glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
         glEnable(GL_COLOR_MATERIAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
@@ -443,7 +442,6 @@ void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
         // Vertex normals mode
         glEnable(GL_NORMALIZE);
         glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
         glEnable(GL_COLOR_MATERIAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }

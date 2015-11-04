@@ -17,13 +17,17 @@ private:
     Node * camera_node;
     Node * curr_node;
     int light_count;
+
 public:
     SceneGraphContainer(void);
     ~SceneGraphContainer(void);
     Node * getRootNode(void);
     Node * getCameraNode(void);
-    Node * getCurrentNode(void);
+    Node * getCurrentNode(void);;
+    int getLightCount(void);
     void setCurrentNode(Node * new_curr_node);
+    bool decLightCount(void);
+    bool incLightCount(void);
     void traverseGraph(void);
 };
 
@@ -32,6 +36,7 @@ SceneGraphContainer::SceneGraphContainer(void)
     root_node = new Node();
     curr_node = root_node;
     camera_node = new CameraNode(root_node);
+
     LightNode * light_node = new LightNode(root_node);
     light_count = 1;
     ObjectNode * object_node = new ObjectNode(root_node);
@@ -57,9 +62,40 @@ Node * SceneGraphContainer::getCurrentNode(void)
     return curr_node;
 }
 
+int SceneGraphContainer::getLightCount(void)
+{
+    return light_count;
+}
+
 void SceneGraphContainer::setCurrentNode(Node * new_curr_node)
 {
     curr_node = new_curr_node;
+}
+
+bool SceneGraphContainer::decLightCount(void)
+{
+    light_count--;
+
+    if (light_count < 1)
+    {
+        light_count = 1;
+        return false;
+    }
+
+    return true;
+}
+
+bool SceneGraphContainer::incLightCount(void)
+{
+    light_count++;
+
+    if (light_count > 8)
+    {
+        light_count = 8;
+        return false;
+    }
+
+    return true;
 }
 
 void SceneGraphContainer::traverseGraph(void)
