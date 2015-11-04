@@ -404,21 +404,18 @@ void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
     {
         // Point mode
         glDisable(GL_NORMALIZE);
-        glDisable(GL_LIGHTING);
         glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
     }
     else if (this->render_type == "Wireframe")
     {
         // Wireframe mode
         glDisable(GL_NORMALIZE);
-        glDisable(GL_LIGHTING);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     else if (this->render_type == "Solid")
     {
         // Solid mode
         glDisable(GL_NORMALIZE);
-        glDisable(GL_LIGHTING);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     else if (this->render_type == "Shaded")
@@ -433,7 +430,6 @@ void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
     {
         // Face normals mode
         glEnable(GL_NORMALIZE);
-        glEnable(GL_LIGHTING);
         glEnable(GL_COLOR_MATERIAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
@@ -441,7 +437,6 @@ void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
     {
         // Vertex normals mode
         glEnable(GL_NORMALIZE);
-        glEnable(GL_LIGHTING);
         glEnable(GL_COLOR_MATERIAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
@@ -455,17 +450,61 @@ private:
     std::string light_type;
     GLenum light_id;
 public:
-    LightNode(void) : Node(NULL, "Light") {}
-    LightNode(Node * parent) : Node(parent, "Light") {}
+    LightNode(void) : light_type("Point"), light_id(GL_LIGHT0), Node(NULL, "Light") {}
+    LightNode(GLenum light_id, Node * parent) : light_type("Point"), light_id(light_id), Node(parent, "Light") {}
+    ~LightNode();
+    void setId(GLenum light_id = GL_LIGHT0);
+    void setType(std::string light_type = "Point");
     void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
+
+LightNode::~LightNode(void)
+{
+    glDisable(light_id);
+}
+
+void LightNode::setId(GLenum light_id)
+{
+    this->light_id = light_id;
+}
+
+void LightNode::setType(std::string light_type)
+{
+    this->light_type = light_type;
+}
 
 void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
     // Have lights always start off at origin
     glm::vec4 pos(0.0, 0.0, 0.0, 1.0);
+
     // Have transformation matrix define where it should be placed
     pos = transform * pos;
+    float light_pos[] = { pos.x, pos.y, pos.z, pos.w };
+
+    // Set w component to 0 if we have a directional light
+    if (light_type == "Directional")
+        light_pos[3] = 0.0;
+
+    // Enable light
+    glEnable(GL_LIGHTING);
+    glEnable(light_id);
+    glLightfv(light_id, GL_POSITION, light_pos);
+
+    
+    glDisable(GL_LIGHTING);
+    glPointSize(20.0);
+
+    glMatrixMode(GL_MODELVIEW);
+
+    glBegin(GL_POINTS);
+
+        glColor4f(1.0, 0.95, 0.3, 1.0);
+        glVertex3fv(light_pos);
+
+    glEnd();
+
+    glEnable(GL_LIGHTING);
 }
 
 class CameraNode : public Node

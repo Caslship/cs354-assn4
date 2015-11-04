@@ -37,7 +37,7 @@ SceneGraphContainer::SceneGraphContainer(void)
     curr_node = root_node;
     camera_node = new CameraNode(root_node);
 
-    LightNode * light_node = new LightNode(root_node);
+    LightNode * light_node = new LightNode(GL_LIGHT0, root_node);
     light_count = 1;
     ObjectNode * object_node = new ObjectNode(root_node);
 }

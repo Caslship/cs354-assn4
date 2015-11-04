@@ -284,7 +284,7 @@ void Control(int control_id)
                 case 4:
                 {
                     if (scenegraph.incLightCount())
-                        LightNode * light_node = new LightNode(curr_node);
+                        LightNode * light_node = new LightNode(light_ids[scenegraph.getLightCount() - 1], curr_node);
 
                     break;
                 }
@@ -323,7 +323,7 @@ void Control(int control_id)
                 {
                     if (scenegraph.incLightCount())
                     {
-                        LightNode * light_node = new LightNode();
+                        LightNode * light_node = new LightNode(light_ids[scenegraph.getLightCount() - 1], NULL);
                         curr_node->addParent(light_node);
                     }
                     break;
@@ -364,6 +364,12 @@ void Control(int control_id)
 
                     Reshape(g_width, g_height);
                 }
+            }
+            else if (curr_node_type == "Light")
+            {
+                string light_type = light_type_list[light_type_index];
+
+                ((LightNode *)curr_node)->setType(light_type);
             }
             break;
         }
