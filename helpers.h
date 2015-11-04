@@ -26,7 +26,7 @@ void InitializeWindow(int& argc, char ** argv)
 {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize(win_width, win_height);
+    glutInitWindowSize(g_width, g_height);
     main_window = glutCreateWindow("Jason Palacios - Scene Graph Viewer");
 }
 
@@ -239,45 +239,45 @@ void UpdateGUI(int old_children_vec_size)
 }
 
 // Set camera view depending current zoom, pan, and orbit settings
-void SetCameraView(void)
-{
-    if (false)
-    {
-        vertex_t model_center;
-        float pos[0] = {};
-        model_center.setPos(pos);
+// void SetCameraView(void)
+// {
+//     if (false)
+//     {
+//         vertex_t model_center;
+//         float pos[0] = {};
+//         model_center.setPos(pos);
 
-        // Zoom
-        gluLookAt(look_at_pos.pos[0], look_at_pos.pos[1], zoom_level, look_at_pos.pos[0], look_at_pos.pos[1], look_at_pos.pos[2], 0.0, 1.0, 0.0);
+//         // Zoom
+//         gluLookAt(look_at_pos.pos[0], look_at_pos.pos[1], zoom_level, look_at_pos.pos[0], look_at_pos.pos[1], look_at_pos.pos[2], 0.0, 1.0, 0.0);
 
-        // Pan
-        glTranslatef(-pan_x, -pan_y, 0.0);
-        glTranslatef(model_center.pos[0], model_center.pos[1], model_center.pos[2] - zoom_level);
+//         // Pan
+//         glTranslatef(-pan_x, -pan_y, 0.0);
+//         glTranslatef(model_center.pos[0], model_center.pos[1], model_center.pos[2] - zoom_level);
 
-        // Orbit
-        glRotatef(orbit_phi, 1.0, 0.0, 0.0);
-        glRotatef(orbit_theta, 0.0, 1.0, 0.0);
-        glRotatef(orbit_delta, 0.0, 0.0, 1.0);
-        glTranslatef(-model_center.pos[0], -model_center.pos[1], -model_center.pos[2]);
-    }
-}
+//         // Orbit
+//         glRotatef(orbit_phi, 1.0, 0.0, 0.0);
+//         glRotatef(orbit_theta, 0.0, 1.0, 0.0);
+//         glRotatef(orbit_delta, 0.0, 0.0, 1.0);
+//         glTranslatef(-model_center.pos[0], -model_center.pos[1], -model_center.pos[2]);
+//     }
+// }
 
 // Setup light position and direction
-void SetLighting(void)
-{
-    // Set light to always be positioned behind the camera
-    // g_light_pos[0] = camera_x;
-    // g_light_pos[1] = camera_y;
-    // g_light_pos[2] = zoom_level;
-    // g_light_pos[3] = 1.0;
-    // glLightfv(GL_LIGHT0, GL_POSITION, g_light_pos);
+// void SetLighting(void)
+// {
+//     // Set light to always be positioned behind the camera
+//     // g_light_pos[0] = camera_x;
+//     // g_light_pos[1] = camera_y;
+//     // g_light_pos[2] = zoom_level;
+//     // g_light_pos[3] = 1.0;
+//     // glLightfv(GL_LIGHT0, GL_POSITION, g_light_pos);
 
-    // Set light to always point at whatever the camera is looking at
-    g_light_direction[0] = 0.0;
-    g_light_direction[1] = 0.0;
-    g_light_direction[2] = look_at_pos.pos[2] - zoom_level;
-    g_light_direction[3] = 1.0;
-    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, g_light_direction); 
-}
+//     // Set light to always point at whatever the camera is looking at
+//     g_light_direction[0] = 0.0;
+//     g_light_direction[1] = 0.0;
+//     g_light_direction[2] = look_at_pos.pos[2] - zoom_level;
+//     g_light_direction[3] = 1.0;
+//     glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, g_light_direction); 
+// }
 
 #endif

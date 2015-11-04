@@ -27,8 +27,8 @@ using namespace std;
 #define PAN_SPEED 0.01
 
 /// Perspective variables
-static int win_height = 600, g_height = 600;
-static int win_width = 800, g_width = 800;
+static int g_height = 600;
+static int g_width = 800;
 static float g_near_plane = 0.01;
 static float g_far_plane = 10000.0;
 
@@ -54,12 +54,10 @@ static bool pan_camera_flag;
 static int vx = 0;
 static int vy = 0;
 static vertex_t look_at_pos;
-extern void SetCameraView(void);
 
 /// Lighting
 static float g_light_pos[4] = {};
 static float g_light_direction[4] = {};
-extern void SetLighting(void);
 
 /// CLI
 static string command = "";
@@ -121,12 +119,6 @@ void Display(void)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // Set camera view
-    SetCameraView();
-
-    // Set light
-    SetLighting();
-
     // Traverse the scene graph
     scenegraph.traverseGraph();
 
@@ -137,8 +129,8 @@ void Display(void)
 // Update view port when resized
 void Reshape(int w, int h)
 {    
-    g_width = win_width = w;
-    g_height = win_height = h;
+    g_width = w;
+    g_height = h;
 
     glViewport(vx, vy, w, h);
 
