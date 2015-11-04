@@ -27,7 +27,7 @@ void InitializeWindow(int& argc, char ** argv)
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(win_width, win_height);
-    main_window = glutCreateWindow("Jason Palacios - Scene Graph Manager");
+    main_window = glutCreateWindow("Jason Palacios - Scene Graph Viewer");
 }
 
 // Initial settings for OpenGL
@@ -42,15 +42,15 @@ void InitializeGraphics(void)
 void RegisterCallbacks(void)
 {
     glutDisplayFunc(Display);
-    GLUI_Master.set_glutReshapeFunc(Reshape);  
-    GLUI_Master.set_glutKeyboardFunc(Keyboard);
-    GLUI_Master.set_glutMouseFunc(MouseButton);
+    glutReshapeFunc(Reshape);  
+    glutKeyboardFunc(Keyboard);
+    glutMouseFunc(MouseButton);
     glutMotionFunc(MouseMotion);
 }
 
 void InitializeGUI(void)
 {
-    glui = GLUI_Master.create_glui_subwindow(main_window, GLUI_SUBWINDOW_LEFT);
+    glui = GLUI_Master.create_glui("GLUI");
 
     // Scene graph panel
     scene_graph_panel = glui->add_panel("Edit Scene Graph");
@@ -107,11 +107,13 @@ void InitializeGUI(void)
             transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ", &transform_type_index, TRANSFORM_TYPE_LB_ID, Control);
             for(int i = 0; i < 3; i++)
                 transform_type_select->add_item(i, transform_type_list[i].c_str());
+            transform_type_select->set_alignment(GLUI_ALIGN_RIGHT);
 
             // Coordinate type selection listbox
             transform_coord_type_select = glui->add_listbox_to_panel(transform_node_panel, "Coords ", &transform_coord_type_index);
             for (int i = 0; i < 2; i++)
                 transform_coord_type_select->add_item(i, transform_coord_type_list[i].c_str());
+            transform_coord_type_select->set_alignment(GLUI_ALIGN_RIGHT);
 
             glui->add_separator_to_panel(transform_node_panel);
 
@@ -120,6 +122,12 @@ void InitializeGUI(void)
             y_param = glui->add_edittext_to_panel(transform_node_panel, "Y", GLUI_EDITTEXT_FLOAT);
             z_param = glui->add_edittext_to_panel(transform_node_panel, "Z", GLUI_EDITTEXT_FLOAT);
             theta_param = glui->add_edittext_to_panel(transform_node_panel, "Theta", GLUI_EDITTEXT_FLOAT);
+
+        // Camera panel
+        camera_node_panel = glui->add_panel_to_panel(curr_node_panel, "Camera");
+
+            vx_param = glui->add_edittext_to_panel(camera_node_panel, "Viewport X", GLUI_EDITTEXT_INT);
+            vy_param = glui->add_edittext_to_panel(camera_node_panel, "Viewport Y", GLUI_EDITTEXT_INT);
 
         // Apply node modification buttons
         update_node = glui->add_button_to_panel(curr_node_panel, "Update", CURR_NODE_UPDATE_B_ID, Control);
@@ -138,91 +146,96 @@ void InitializeGUI(void)
 
 void UpdateGUI(int old_children_vec_size)
 {
+    // Start certain components off disabled and then enable ones that are appropriate given program state
+    child_node_select->disable();
+    select_child_node->disable();
+    select_parent_node->disable();
+
+    add_child_node->disable();
+    add_parent_node->disable();
+
+    attr_node_panel->disable();
+
+    geom_node_panel->disable();
+
+    transform_node_panel->disable();
+
+    camera_node_panel->disable();
+
+    update_node->disable();
+    delete_node->disable();
+
     Node * root_node = scenegraph.getRootNode();
     Node * curr_node = scenegraph.getCurrentNode();
-
-    // Start every component off in an enabled state
-    scene_graph_panel->enable();
-    select_node_panel->enable();
-    child_node_select->enable();
-    select_child_node->enable();
-    select_parent_node->enable();
-    add_node_panel->enable();
-    node_type_select->enable();
-    add_child_node->enable();
-    add_parent_node->enable();
-    curr_node_panel->enable();
-    attr_node_panel->enable();
-    render_type_select->enable();
-    geom_node_panel->enable();
-    geom_path->enable();
-    transform_node_panel->enable();
-    transform_type_select->enable();
-    transform_coord_type_select->enable();
-    x_param->enable();
-    y_param->enable();
-    z_param->enable();
-    theta_param->enable();
-    update_node->enable();
-    delete_node->enable();
-
     string curr_node_type = curr_node->getNodeType();
     vector<string> children_node_type_vec = curr_node->getChildNodeTypes();
+    int children_vec_size = curr_node->getChildCount();
+
+    bool has_children = (children_vec_size > 0);
+    bool is_root = (curr_node == root_node);
+    bool is_geom_type = (curr_node_type == "Geometry");
+    bool is_transform_type = (curr_node_type == "Transform");
+    bool is_attr_type = (curr_node_type == "Attribute");
+    bool is_camera_type = (curr_node_type == "Camera");
+    bool is_light_type = (curr_node_type == "Light");
+    bool camera_node_selected = (node_type_list[node_type_index] == "Camera");
+    bool geom_node_selected = (node_type_list[node_type_index] == "Geometry");
+    bool light_node_selected = (node_type_list[node_type_index] == "Light");
+    bool rotation_node_selected  = (transform_type_list[transform_type_index] == "Rotate");
 
     for (int i = 0; i < old_children_vec_size; i++)
         child_node_select->delete_item(i);
 
-    int children_vec_size = curr_node->getChildCount();
-    if (children_vec_size > 0)
+    if (has_children)
     {
         for (int i = 0; i < children_vec_size; i++)
             child_node_select->add_item(i, children_node_type_vec[i].c_str());
+
+        child_node_select->enable();
+        select_child_node->enable();
     }
-    else
+
+    if (!is_root)
+        select_parent_node->enable();
+
+    if (!is_root && !camera_node_selected && !light_node_selected && !geom_node_selected)
+        add_parent_node->enable();
+
+    if (!is_camera_type && !is_geom_type && !is_light_type)
+        add_child_node->enable();
+
+    if (is_attr_type)
     {
-        child_node_select->disable();
+        attr_node_panel->enable();
     }
-
-    if (children_vec_size <= 0)
-        select_child_node->disable();
-
-    if (curr_node == root_node)
-        select_parent_node->disable();
-
-    if (curr_node == root_node || node_type_list[node_type_index] == "Light" || node_type_list[node_type_index] == "Geometry")
-        add_parent_node->disable();
-
-    if (curr_node_type == "Camera" || curr_node_type == "Geometry" || curr_node_type == "Light")
-        add_child_node->disable();
-
-    if (curr_node_type != "Attribute")
-        attr_node_panel->disable();
-
-    if (curr_node_type != "Geometry")
-        geom_node_panel->disable();
-    else
+    else if (is_geom_type)
     {
+        geom_node_panel->enable();
+
         geom_path->set_text(((GeometryNode *)curr_node)->getFilePath().c_str());
     }
-
-    if (curr_node_type != "Transform")
-        transform_node_panel->disable();
-    else
+    else if (is_transform_type)
     {
+        transform_node_panel->enable();
+
+        if (!rotation_node_selected)
+            theta_param->disable();
+
         x_param->set_float_val(((TransformNode *)curr_node)->getX());
         y_param->set_float_val(((TransformNode *)curr_node)->getY());
         z_param->set_float_val(((TransformNode *)curr_node)->getZ());
         theta_param->set_float_val(((TransformNode *)curr_node)->getTheta());
-
-        if (transform_type_list[transform_type_index] != "Rotate")
-            theta_param->disable();
+    }
+    else if (is_camera_type)
+    {
+        camera_node_panel->enable();
     }
 
-    if (curr_node_type == "Camera" || curr_node == root_node)
-        delete_node->disable();
+    if (!is_camera_type && !is_root)
+        delete_node->enable();
 
-    if (curr_node_type == "Light" || curr_node == root_node)
-        update_node->disable();
+    if (!is_root)
+        update_node->enable();
 }
 
 // Set camera view depending current zoom, pan, and orbit settings

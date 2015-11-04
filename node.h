@@ -445,9 +445,8 @@ void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    gluLookAt(  0.0, 0.0, -20.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
-
     glMultMatrixf(glm::value_ptr(transform));
+    gluLookAt(0.0, 0.0, -20.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
 #endif

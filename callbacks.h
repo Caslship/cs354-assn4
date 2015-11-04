@@ -51,6 +51,8 @@ static float pan_x = 0.0, pan_y = 0.0;
 static bool orbit_camera_flag;
 static bool zoom_camera_flag;
 static bool pan_camera_flag;
+static int vx = 0;
+static int vy = 0;
 static vertex_t look_at_pos;
 extern void SetCameraView(void);
 
@@ -87,6 +89,9 @@ GLUI_EditText * x_param;
 GLUI_EditText * y_param;
 GLUI_EditText * z_param;
 GLUI_EditText * theta_param;
+GLUI_Panel * camera_node_panel;
+GLUI_EditText * vx_param;
+GLUI_EditText * vy_param;
 GLUI_Button * update_node;
 GLUI_Button * delete_node;
 
@@ -109,7 +114,7 @@ void Display(void)
     // Clear screen and misc settings    
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0, 0, 0, 1);
+    glClearColor(0.25, 0.25, 0.25, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Start of with a fresh model view
@@ -132,13 +137,10 @@ void Display(void)
 // Update view port when resized
 void Reshape(int w, int h)
 {    
-    int tx, ty;
-    GLUI_Master.get_viewport_area(&tx, &ty, &w, &h);
-
     g_width = win_width = w;
     g_height = win_height = h;
 
-    glViewport(tx, ty, w, h);
+    glViewport(vx, vy, w, h);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -344,6 +346,19 @@ void Control(int control_id)
                 float theta = theta_param->get_float_val();
 
                 ((TransformNode *)curr_node)->setParams(transform_type, xyz, theta);
+            }
+            else if (curr_node_type == "Camera")
+            {
+                int new_vx = vx_param->get_int_val();
+                int new_vy = vy_param->get_int_val();
+
+                if ((new_vx >= 0 && new_vx <= g_width) && (new_vy >= 0 && new_vy <= g_height))
+                {
+                    vx = new_vx;
+                    vy = new_vy;
+
+                    Reshape(g_width, g_height);
+                }
             }
             break;
         }
