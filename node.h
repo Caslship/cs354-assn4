@@ -169,10 +169,10 @@ void Node::removeNode(void)
 
                 // Move all children to parent and set the parent as their parent
                 int children_vec_size = children_vec.size();
-                for (int i = 0; i < children_vec_size; i++)
+                for (int j = 0; j < children_vec_size; j++)
                 {
-                    parent->children_vec.push_back(children_vec[i]);
-                    children_vec[i]->parent = parent;
+                    parent->children_vec.insert(parent->children_vec.begin() + i + j children_vec[i]);
+                    children_vec[j]->parent = parent;
                 }
                 // Remove all ties to children
                 children_vec.clear();
