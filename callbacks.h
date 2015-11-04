@@ -79,7 +79,7 @@ GLUI_Panel * curr_node_panel;
 GLUI_Panel * attr_node_panel;
 GLUI_Listbox * render_type_select;
 GLUI_Panel * geom_node_panel;
-GLUI_EditText * geometry_path;
+GLUI_EditText * geom_path;
 GLUI_Panel * transform_node_panel;
 GLUI_Listbox * transform_type_select;
 GLUI_Listbox * transform_coord_type_select;
@@ -250,6 +250,11 @@ void Control(int control_id)
 
             break;
         }
+        case NODE_TYPE_LB_ID:
+        case TRANSFORM_TYPE_LB_ID:
+        {
+            break;
+        }
         case CHILD_NODE_ADD_B_ID:
         {
             switch(node_type_index)
@@ -330,7 +335,7 @@ void Control(int control_id)
             }
             else if (curr_node_type == "Geometry")
             {
-                ((GeometryNode *)curr_node)->setMesh(geometry_path->get_text());
+                ((GeometryNode *)curr_node)->setMesh(geom_path->get_text());
             }
             else if (curr_node_type == "Transform")
             {

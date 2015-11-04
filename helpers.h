@@ -71,7 +71,7 @@ void InitializeGUI(void)
         add_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Addition");
             
             // Node type selection listbox
-            node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ", &node_type_index);
+            node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ", &node_type_index, NODE_TYPE_LB_ID, Control);
             for (int i = 0; i < 5; i++)
                 node_type_select->add_item(i, node_type_list[i].c_str());
 
@@ -90,7 +90,7 @@ void InitializeGUI(void)
         attr_node_panel = glui->add_panel_to_panel(curr_node_panel, "Attribute");
             
             // Render mode selection listbox
-            render_type_select = glui->add_listbox_to_panel(attr_node_panel, "Render ");
+            render_type_select = glui->add_listbox_to_panel(attr_node_panel, "Render ", &render_type_index);
             for(int i = 0; i < 6; i++ )
                 render_type_select->add_item(i, render_type_list[i].c_str());
 
@@ -98,13 +98,13 @@ void InitializeGUI(void)
         geom_node_panel = glui->add_panel_to_panel(curr_node_panel, "Geometry");
             
             // Obj filepath textbox
-            geometry_path = glui->add_edittext_to_panel(geom_node_panel, "Obj", GLUI_EDITTEXT_TEXT);
+            geom_path = glui->add_edittext_to_panel(geom_node_panel, "Obj", GLUI_EDITTEXT_TEXT);
 
         // Transform panel
         transform_node_panel = glui->add_panel_to_panel(curr_node_panel, "Transformation");
 
             // Transform type selection listbox
-            transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ", &transform_type_index);
+            transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ", &transform_type_index, TRANSFORM_TYPE_LB_ID, Control);
             for(int i = 0; i < 3; i++)
                 transform_type_select->add_item(i, transform_type_list[i].c_str());
 
@@ -155,7 +155,7 @@ void UpdateGUI(int old_children_vec_size)
     attr_node_panel->enable();
     render_type_select->enable();
     geom_node_panel->enable();
-    geometry_path->enable();
+    geom_path->enable();
     transform_node_panel->enable();
     transform_type_select->enable();
     transform_coord_type_select->enable();
@@ -189,7 +189,7 @@ void UpdateGUI(int old_children_vec_size)
     if (curr_node == root_node)
         select_parent_node->disable();
 
-    if (curr_node == root_node)
+    if (curr_node == root_node || node_type_list[node_type_index] == "Light" || node_type_list[node_type_index] == "Geometry")
         add_parent_node->disable();
 
     if (curr_node_type == "Camera" || curr_node_type == "Geometry" || curr_node_type == "Light")
@@ -200,6 +200,10 @@ void UpdateGUI(int old_children_vec_size)
 
     if (curr_node_type != "Geometry")
         geom_node_panel->disable();
+    else
+    {
+        geom_path->set_text(((GeometryNode *)curr_node)->getFilePath().c_str());
+    }
 
     if (curr_node_type != "Transform")
         transform_node_panel->disable();
@@ -210,7 +214,7 @@ void UpdateGUI(int old_children_vec_size)
         z_param->set_float_val(((TransformNode *)curr_node)->getZ());
         theta_param->set_float_val(((TransformNode *)curr_node)->getTheta());
 
-        if (((TransformNode *)curr_node)->getTransformType() != "Rotate")
+        if (transform_type_list[transform_type_index] != "Rotate")
             theta_param->disable();
     }
 

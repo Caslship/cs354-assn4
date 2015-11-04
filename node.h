@@ -36,8 +36,7 @@ public:
     int getChildCount(void);
     void addChild(Node * child);
     void addParent(Node * new_parent);
-    // void deleteChild(Node * child);
-    virtual void traverseNode(glm::mat4 transform = glm::mat4(1.0));
+    virtual void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
 
 Node::Node(void) : parent(NULL), node_type("Root") {}
@@ -151,26 +150,12 @@ void Node::addParent(Node * new_parent)
     parent = new_parent;
 }
 
-// void Node::deleteChild(Node * child)
-// {
-//     int children_vec_size = children_vec.size();
-//     for (int i = 0; i < children_vec_size; i++)
-//     {
-//         if (children_vec[i] == child)
-//         {
-//             // Deconstructor takes care of deleting the element from the vector
-//             delete child;
-//             break;
-//         }
-//     }
-// }
-
-void Node::traverseNode(glm::mat4 transform)
+void Node::traverseNode(glm::mat4 transform, std::string render_type)
 {
     int children_vec_size = children_vec.size();
     for (int i = 0; i < children_vec_size; i++)
     {
-        children_vec[i]->traverseNode(transform);
+        children_vec[i]->traverseNode(transform, render_type);
     }
 }
 
@@ -179,32 +164,41 @@ class ObjectNode : public Node
 public:
     ObjectNode(void) : Node(NULL, "Object") {}
     ObjectNode(Node * parent) : Node(parent, "Object") {}
-    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
 
-void ObjectNode::traverseNode(glm::mat4 transform)
+void ObjectNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
+    glPushAttrib(GL_POLYGON_BIT);
     glPushMatrix();
 
-        Node::traverseNode(transform);
+        Node::traverseNode(transform, render_type);
 
     glPopMatrix();
+    glPopAttrib();
 }
 
 class GeometryNode : public Node
 {
 private:
     Trimesh model;
+    std::string file_path;
 public:
-    GeometryNode(void) : Node(NULL, "Geometry") {}
-    GeometryNode(Node * parent) : Node(parent, "Geometry") {}
+    GeometryNode(void) : file_path(""), Node(NULL, "Geometry") {}
+    GeometryNode(Node * parent) : file_path(""), Node(parent, "Geometry") {}
+    std::string getFilePath(void);
     void setMesh(const char * file_path_cstring);
-    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
+
+std::string GeometryNode::getFilePath(void)
+{
+    return file_path;
+}
 
 void GeometryNode::setMesh(const char * file_path_cstring)
 {
-    std::string file_path(file_path_cstring);
+    file_path = file_path_cstring;
     int file_path_length = file_path.length();
     int pos = 0;
 
@@ -252,7 +246,7 @@ void GeometryNode::setMesh(const char * file_path_cstring)
     // glMatrixMode(GL_MODELVIEW);
 }
 
-void GeometryNode::traverseNode(glm::mat4 transform)
+void GeometryNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
     glMatrixMode(GL_MODELVIEW);
 
@@ -262,7 +256,7 @@ void GeometryNode::traverseNode(glm::mat4 transform)
     glMultMatrixf(glm::value_ptr(transform));
     glTranslatef(-model_center.pos[0], -model_center.pos[1], -model_center.pos[2]);
 
-    model.render();
+    model.render(render_type);
 }
 
 class TransformNode : public Node
@@ -281,7 +275,7 @@ public:
     float getZ(void);
     float getTheta(void);
     void setParams(std::string transform_type, float xyz[], float theta = 0.0);
-    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
 
 TransformNode::TransformNode(void) : Node(NULL, "Transform")
@@ -329,7 +323,7 @@ void TransformNode::setParams(std::string transform_type, float xyz[], float the
     this->theta = theta;
 }
 
-void TransformNode::traverseNode(glm::mat4 transform)
+void TransformNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
     if (transform_type == "Scale")
     {
@@ -347,7 +341,7 @@ void TransformNode::traverseNode(glm::mat4 transform)
         transform = rotate * transform;
     }
 
-    Node::traverseNode(transform);
+    Node::traverseNode(transform, render_type);
 }
 
 class AttributeNode : public Node
@@ -358,7 +352,7 @@ public:
     AttributeNode(void) : render_type("Solid"), Node(NULL, "Attribute") {}
     AttributeNode(Node * parent) : render_type("Solid"), Node(parent, "Attribute") {}
     void setParams(std::string render_type);
-    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
 
 void AttributeNode::setParams(std::string render_type)
@@ -366,62 +360,58 @@ void AttributeNode::setParams(std::string render_type)
     this->render_type = render_type;
 }
 
-void AttributeNode::traverseNode(glm::mat4 transform)
+void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
-    glPushAttrib(GL_POLYGON_BIT);
+    if (this->render_type == "Points")
+    {
+        // Point mode
+        glDisable(GL_NORMALIZE);
+        glDisable(GL_LIGHTING);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+    }
+    else if (this->render_type == "Wireframe")
+    {
+        // Wireframe mode
+        glDisable(GL_NORMALIZE);
+        glDisable(GL_LIGHTING);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else if (this->render_type == "Solid")
+    {
+        // Solid mode
+        glDisable(GL_NORMALIZE);
+        glDisable(GL_LIGHTING);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+    else if (this->render_type == "Shaded")
+    {
+        // Shaded mode
+        glDisable(GL_NORMALIZE);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_COLOR_MATERIAL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+    else if (this->render_type == "Face Normals")
+    {
+        // Face normals mode
+        glEnable(GL_NORMALIZE);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_COLOR_MATERIAL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+    else if (this->render_type == "Vertex Normals")
+    {
+        // Vertex normals mode
+        glEnable(GL_NORMALIZE);
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_COLOR_MATERIAL);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 
-        if (render_type == "Points")
-        {
-            // Point mode
-            glDisable(GL_NORMALIZE);
-            glDisable(GL_LIGHTING);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-        }
-        else if (render_type == "Wireframe")
-        {
-            // Wireframe mode
-            glDisable(GL_NORMALIZE);
-            glDisable(GL_LIGHTING);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        }
-        else if (render_type == "Solid")
-        {
-            // Solid mode
-            glDisable(GL_NORMALIZE);
-            glDisable(GL_LIGHTING);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-        else if (render_type == "Shaded")
-        {
-            // Shaded mode
-            glDisable(GL_NORMALIZE);
-            glEnable(GL_LIGHTING);
-            glEnable(GL_LIGHT0);
-            glEnable(GL_COLOR_MATERIAL);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-        else if (render_type == "Face Normals")
-        {
-            // Face normals mode
-            glEnable(GL_NORMALIZE);
-            glEnable(GL_LIGHTING);
-            glEnable(GL_LIGHT0);
-            glEnable(GL_COLOR_MATERIAL);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-        else if (render_type == "Vertex Normals")
-        {
-            // Vertex normals mode
-            glEnable(GL_NORMALIZE);
-            glEnable(GL_LIGHTING);
-            glEnable(GL_LIGHT0);
-            glEnable(GL_COLOR_MATERIAL);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-
-        Node::traverseNode(transform);
-
-    glPopAttrib();
+    Node::traverseNode(transform, this->render_type);
 }
 
 class LightNode : public Node
@@ -431,10 +421,10 @@ private:
 public:
     LightNode(void) : Node(NULL, "Light") {}
     LightNode(Node * parent) : Node(parent, "Light") {}
-    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
 
-void LightNode::traverseNode(glm::mat4 transform)
+void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
     // Have lights always start off at origin
     glm::vec4 pos(0.0, 0.0, 0.0, 1.0);
@@ -447,10 +437,10 @@ class CameraNode : public Node
 public:
     CameraNode(void) : Node(NULL, "Camera") {}
     CameraNode(Node * parent) : Node(parent, "Camera") {}
-    void traverseNode(glm::mat4 transform = glm::mat4(1.0));
+    void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
 
-void CameraNode::traverseNode(glm::mat4 transform)
+void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
