@@ -19,6 +19,8 @@
 #include "geom.h"
 #include "loader.h"
 
+using namespace std;
+
 class Node
 {
 protected:
@@ -434,19 +436,25 @@ void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
 
 class CameraNode : public Node
 {
+private:
+    glm::vec4 pos;
+    glm::vec3 look_at_vec;
 public:
-    CameraNode(void) : Node(NULL, "Camera") {}
-    CameraNode(Node * parent) : Node(parent, "Camera") {}
+    CameraNode(void) : pos(0.0, 0.0, -20.0, 1.0), look_at_vec(0.0, 0.0, -1.0), Node(NULL, "Camera") {}
+    CameraNode(Node * parent) : pos(0.0, 0.0, -20.0, 1.0), look_at_vec(0.0, 0.0, -1.0), Node(parent, "Camera") {}
     void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
 
 void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
+    glm::vec4 camera_pos = transform * pos;
+    glm::vec3 look_at_pos = glm::vec3(camera_pos.x * look_at_vec.x, camera_pos.y * look_at_vec.y, camera_pos.z * look_at_vec.z);
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-
-    glMultMatrixf(glm::value_ptr(transform));
-    gluLookAt(0.0, 0.0, -20.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(  camera_pos.x, camera_pos.y, camera_pos.z, 
+                look_at_pos.x, look_at_pos.y, look_at_pos.z, 
+                0.0, 1.0, 0.0   );
 }
 
 #endif

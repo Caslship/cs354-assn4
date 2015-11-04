@@ -114,7 +114,7 @@ void Display(void)
     // Clear screen and misc settings    
     glShadeModel(GL_SMOOTH);
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.25, 0.25, 0.25, 1);
+    glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Start of with a fresh model view
