@@ -56,7 +56,7 @@ void InitializeGUI(void)
     scene_graph_panel = glui->add_panel("Edit Scene Graph");
 
         // Node selection panel
-        select_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Selection");
+        select_node_panel = glui->add_rollout_to_panel(scene_graph_panel, "Node Selection", true);
             
             // Child selection listbox
             child_node_select = glui->add_listbox_to_panel(select_node_panel, "Child ", &child_node_index);
@@ -68,7 +68,7 @@ void InitializeGUI(void)
             select_parent_node = glui->add_button_to_panel(select_node_panel, "Select Parent", PARENT_NODE_SELECT_B_ID, Control);
 
         // Node addition panel
-        add_node_panel = glui->add_panel_to_panel(scene_graph_panel, "Node Addition");
+        add_node_panel = glui->add_rollout_to_panel(scene_graph_panel, "Node Addition", true);
             
             // Node type selection listbox
             node_type_select = glui->add_listbox_to_panel(add_node_panel, "Type ", &node_type_index, NODE_TYPE_LB_ID, Control);
@@ -87,7 +87,7 @@ void InitializeGUI(void)
     curr_node_panel = glui->add_panel("Edit Current Node");
 
         // Attribute panel
-        attr_node_panel = glui->add_panel_to_panel(curr_node_panel, "Attribute");
+        attr_node_panel = glui->add_rollout_to_panel(curr_node_panel, "Attribute", false);
             
             // Render mode selection listbox
             render_type_select = glui->add_listbox_to_panel(attr_node_panel, "Render ", &render_type_index);
@@ -95,13 +95,13 @@ void InitializeGUI(void)
                 render_type_select->add_item(i, render_type_list[i].c_str());
 
         // Geometry panel
-        geom_node_panel = glui->add_panel_to_panel(curr_node_panel, "Geometry");
+        geom_node_panel = glui->add_rollout_to_panel(curr_node_panel, "Geometry", false);
             
             // Obj filepath textbox
             geom_path = glui->add_edittext_to_panel(geom_node_panel, "Obj", GLUI_EDITTEXT_TEXT);
 
         // Transform panel
-        transform_node_panel = glui->add_panel_to_panel(curr_node_panel, "Transformation");
+        transform_node_panel = glui->add_rollout_to_panel(curr_node_panel, "Transformation", false);
 
             // Transform type selection listbox
             transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ", &transform_type_index, TRANSFORM_TYPE_LB_ID, Control);
@@ -110,10 +110,10 @@ void InitializeGUI(void)
             transform_type_select->set_alignment(GLUI_ALIGN_RIGHT);
 
             // Coordinate type selection listbox
-            transform_coord_type_select = glui->add_listbox_to_panel(transform_node_panel, "Coords ", &transform_coord_type_index);
-            for (int i = 0; i < 2; i++)
-                transform_coord_type_select->add_item(i, transform_coord_type_list[i].c_str());
-            transform_coord_type_select->set_alignment(GLUI_ALIGN_RIGHT);
+            // transform_coord_type_select = glui->add_listbox_to_panel(transform_node_panel, "Coords ", &transform_coord_type_index);
+            // for (int i = 0; i < 2; i++)
+            //     transform_coord_type_select->add_item(i, transform_coord_type_list[i].c_str());
+            // transform_coord_type_select->set_alignment(GLUI_ALIGN_RIGHT);
 
             glui->add_separator_to_panel(transform_node_panel);
 
@@ -124,14 +124,14 @@ void InitializeGUI(void)
             theta_param = glui->add_edittext_to_panel(transform_node_panel, "Theta", GLUI_EDITTEXT_FLOAT);
 
         // Camera panel
-        camera_node_panel = glui->add_panel_to_panel(curr_node_panel, "Camera");
+        camera_node_panel = glui->add_rollout_to_panel(curr_node_panel, "Camera", false);
 
             // Viewport parameter textboxes
             vx_param = glui->add_edittext_to_panel(camera_node_panel, "Viewport X", GLUI_EDITTEXT_INT);
             vy_param = glui->add_edittext_to_panel(camera_node_panel, "Viewport Y", GLUI_EDITTEXT_INT);
 
         // Light panel
-        light_node_panel = glui->add_panel_to_panel(curr_node_panel, "Light");
+        light_node_panel = glui->add_rollout_to_panel(curr_node_panel, "Light", false);
 
             // Light type selection listbox
             light_type_select = glui->add_listbox_to_panel(light_node_panel, "Type ", &light_type_index);
@@ -164,14 +164,19 @@ void UpdateGUI(int old_children_vec_size)
     add_parent_node->disable();
 
     attr_node_panel->disable();
+    attr_node_panel->close();
 
     geom_node_panel->disable();
+    geom_node_panel->close();
 
     transform_node_panel->disable();
+    transform_node_panel->close();
 
     camera_node_panel->disable();
+    camera_node_panel->close();
 
     light_node_panel->disable();
+    light_node_panel->close();
 
     update_node->disable();
     delete_node->disable();
@@ -205,6 +210,8 @@ void UpdateGUI(int old_children_vec_size)
 
         child_node_select->enable();
         select_child_node->enable();
+
+        child_node_select->do_selection(0);
     }
 
     if (!is_root)
@@ -219,16 +226,29 @@ void UpdateGUI(int old_children_vec_size)
     if (is_attr_type)
     {
         attr_node_panel->enable();
+        attr_node_panel->open();
+
+        render_type_select->enable();
     }
     else if (is_geom_type)
     {
         geom_node_panel->enable();
+        geom_node_panel->open();
+
+        geom_path->enable();
 
         geom_path->set_text(((GeometryNode *)curr_node)->getFilePath().c_str());
     }
     else if (is_transform_type)
     {
         transform_node_panel->enable();
+        transform_node_panel->open();
+
+        transform_type_select->enable();
+        x_param->enable();
+        y_param->enable();
+        z_param->enable();
+        theta_param->enable();
 
         if (!rotation_node_selected)
             theta_param->disable();
@@ -239,9 +259,20 @@ void UpdateGUI(int old_children_vec_size)
         theta_param->set_float_val(((TransformNode *)curr_node)->getTheta());
     }
     else if (is_camera_type)
+    {
         camera_node_panel->enable();
+        camera_node_panel->open();
+
+        vx_param->enable();
+        vy_param->enable();
+    }
     else if (is_light_type)
+    {
         light_node_panel->enable();
+        light_node_panel->open();
+
+        light_type_select->enable();
+    }
 
     if (!is_camera_type && !is_root && !(is_light_type && light_count == 1))
         delete_node->enable();
@@ -249,47 +280,5 @@ void UpdateGUI(int old_children_vec_size)
     if (!is_root)
         update_node->enable();
 }
-
-// Set camera view depending current zoom, pan, and orbit settings
-// void SetCameraView(void)
-// {
-//     if (false)
-//     {
-//         vertex_t model_center;
-//         float pos[0] = {};
-//         model_center.setPos(pos);
-
-//         // Zoom
-//         gluLookAt(look_at_pos.pos[0], look_at_pos.pos[1], zoom_level, look_at_pos.pos[0], look_at_pos.pos[1], look_at_pos.pos[2], 0.0, 1.0, 0.0);
-
-//         // Pan
-//         glTranslatef(-pan_x, -pan_y, 0.0);
-//         glTranslatef(model_center.pos[0], model_center.pos[1], model_center.pos[2] - zoom_level);
-
-//         // Orbit
-//         glRotatef(orbit_phi, 1.0, 0.0, 0.0);
-//         glRotatef(orbit_theta, 0.0, 1.0, 0.0);
-//         glRotatef(orbit_delta, 0.0, 0.0, 1.0);
-//         glTranslatef(-model_center.pos[0], -model_center.pos[1], -model_center.pos[2]);
-//     }
-// }
-
-// Setup light position and direction
-// void SetLighting(void)
-// {
-//     // Set light to always be positioned behind the camera
-//     // g_light_pos[0] = camera_x;
-//     // g_light_pos[1] = camera_y;
-//     // g_light_pos[2] = zoom_level;
-//     // g_light_pos[3] = 1.0;
-//     // glLightfv(GL_LIGHT0, GL_POSITION, g_light_pos);
-
-//     // Set light to always point at whatever the camera is looking at
-//     g_light_direction[0] = 0.0;
-//     g_light_direction[1] = 0.0;
-//     g_light_direction[2] = look_at_pos.pos[2] - zoom_level;
-//     g_light_direction[3] = 1.0;
-//     glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, g_light_direction); 
-// }
 
 #endif

@@ -14,7 +14,7 @@ class SceneGraphContainer
 {
 private:
     Node * root_node;
-    Node * camera_node;
+    CameraNode * camera_node;
     Node * curr_node;
     int light_count;
 
@@ -22,7 +22,7 @@ public:
     SceneGraphContainer(void);
     ~SceneGraphContainer(void);
     Node * getRootNode(void);
-    Node * getCameraNode(void);
+    CameraNode * getCameraNode(void);
     Node * getCurrentNode(void);;
     int getLightCount(void);
     void setCurrentNode(Node * new_curr_node);
@@ -52,7 +52,7 @@ Node * SceneGraphContainer::getRootNode(void)
     return root_node;
 }
 
-Node * SceneGraphContainer::getCameraNode(void)
+CameraNode * SceneGraphContainer::getCameraNode(void)
 {
     return camera_node;
 }

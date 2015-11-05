@@ -19,6 +19,11 @@
 #include "geom.h"
 #include "loader.h"
 
+#define VIEWING_DISTANCE_MIN  0.1
+#define ZOOM_SPEED 5.0
+#define ORBIT_SPEED 0.5
+#define PAN_SPEED 0.01
+
 using namespace std;
 
 class Node
@@ -270,7 +275,7 @@ void GeometryNode::setMesh(const char * file_path_cstring)
     model = new_model;
 
     // Adjust camera for new object
-    // look_at_pos = model.getCenter();
+    model.getCenter();
     // zoom_level = model.getBoundingLength();
     // zoom_level = (zoom_level < VIEWING_DISTANCE_MIN ? VIEWING_DISTANCE_MIN : zoom_level);
     // orbit_theta = orbit_phi = orbit_delta = pan_x = pan_y = 0.0;
@@ -490,21 +495,6 @@ void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
     glEnable(GL_LIGHTING);
     glEnable(light_id);
     glLightfv(light_id, GL_POSITION, light_pos);
-
-    
-    glDisable(GL_LIGHTING);
-    glPointSize(20.0);
-
-    glMatrixMode(GL_MODELVIEW);
-
-    glBegin(GL_POINTS);
-
-        glColor4f(1.0, 0.95, 0.3, 1.0);
-        glVertex3fv(light_pos);
-
-    glEnd();
-
-    glEnable(GL_LIGHTING);
 }
 
 class CameraNode : public Node
@@ -512,11 +502,134 @@ class CameraNode : public Node
 private:
     glm::vec4 pos;
     glm::vec3 look_at_vec;
+
+    // Orbit
+    bool orbit_flag;
+    int old_orbit_x, old_orbit_y;
+    float orbit_theta, orbit_phi;
+
+    // Zoom
+    bool zoom_flag;
+    float old_zoom_level;
+    float zoom_level;
+
+    // Pan
+    bool pan_flag;
+    int old_pan_x, old_pan_y;
+    float pan_x, pan_y;
+
+    // Viewport
+    int vx;
+    int vy;
+
 public:
-    CameraNode(void) : pos(0.0, 0.0, -20.0, 1.0), look_at_vec(0.0, 0.0, -1.0), Node(NULL, "Camera") {}
-    CameraNode(Node * parent) : pos(0.0, 0.0, -20.0, 1.0), look_at_vec(0.0, 0.0, -1.0), Node(parent, "Camera") {}
+    CameraNode(void);
+    CameraNode(Node * parent);
+    int getViewportX(void);
+    int getViewportY(void);
+    void setViewportXY(int vx = 0, int vy = 0);
+    void processMouseButton(int button, int state, int x, int y);
+    void processMouseMotion(int x, int y);
     void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
+
+CameraNode::CameraNode(void) : pos(0.0, 0.0, -10.0, 1.0), look_at_vec(0.0, 0.0, -1.0), Node(NULL, "Camera")
+{
+    orbit_flag = false;
+    zoom_flag = false;
+    pan_flag = false;
+
+    orbit_theta = 0.0, orbit_phi = 0.0;
+    pan_x = 0.0, pan_y = 0.0;
+    zoom_level = 50.0 * VIEWING_DISTANCE_MIN;
+
+    vx = 0, vy = 0;
+}
+
+CameraNode::CameraNode(Node * parent) : pos(0.0, 0.0, -10.0, 1.0), look_at_vec(0.0, 0.0, -1.0), Node(parent, "Camera")
+{
+    orbit_flag = false;
+    zoom_flag = false;
+    pan_flag = false;
+
+    orbit_theta = 0.0, orbit_phi = 0.0;
+    pan_x = 0.0, pan_y = 0.0;
+    zoom_level = 50.0 * VIEWING_DISTANCE_MIN;
+
+    vx = 0, vy = 0;
+}
+
+int CameraNode::getViewportX(void)
+{
+    return vx;
+}
+
+int CameraNode::getViewportY(void)
+{
+    return vy;
+}
+
+void CameraNode::setViewportXY(int vx, int vy)
+{
+    this->vx = 0;
+    this->vy = 0;
+}
+
+void CameraNode::processMouseButton(int button, int state, int x, int y)
+{
+    if ((orbit_flag = ((state == GLUT_DOWN) && (button == GLUT_LEFT_BUTTON))))
+    {
+        // Orbit
+        old_orbit_x = x;
+        old_orbit_y = y;
+    }
+    else if ((zoom_flag = ((state == GLUT_DOWN) && (button == GLUT_RIGHT_BUTTON))))
+    {
+        // Zoom
+        old_zoom_level = y - (ZOOM_SPEED * zoom_level);
+    }
+    else if ((pan_flag = ((state == GLUT_DOWN) && (button == GLUT_MIDDLE_BUTTON))))
+    {
+        // Pan
+        old_pan_x = x;
+        old_pan_y = y;
+    }
+}
+
+void CameraNode::processMouseMotion(int x, int y)
+{
+    if (orbit_flag)
+    {
+        // Orbit
+        orbit_theta += ((x - old_orbit_x) * ORBIT_SPEED);
+        orbit_phi += ((y - old_orbit_y) * ORBIT_SPEED);
+
+        old_orbit_x = x;
+        old_orbit_y = y;
+
+        glutPostRedisplay();
+    }
+    else if (zoom_flag)
+    {
+        // Zoom
+        zoom_level = (float)(y - old_zoom_level) / ZOOM_SPEED;
+        if (zoom_level < VIEWING_DISTANCE_MIN)
+            zoom_level = VIEWING_DISTANCE_MIN;
+
+        glutPostRedisplay();
+    }
+    else if (pan_flag)
+    {
+        // Pan
+        pan_x += (x - old_pan_x) * PAN_SPEED;
+        pan_y += (old_pan_y - y) * PAN_SPEED;
+
+        old_pan_x = x;
+        old_pan_y = y;
+
+        glutPostRedisplay();
+    }
+}
 
 void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
@@ -528,6 +641,20 @@ void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
     gluLookAt(  camera_pos.x, camera_pos.y, camera_pos.z, 
                 look_at_pos.x, look_at_pos.y, look_at_pos.z, 
                 0.0, 1.0, 0.0   );
+
+    // vertex_t model_center;
+    // float pos[0] = {};
+    // model_center.setPos(pos);
+
+    // // Pan
+    // glTranslatef(-pan_x, -pan_y, 0.0);
+    // glTranslatef(model_center.pos[0], model_center.pos[1], model_center.pos[2] - zoom_level);
+
+    // // Orbit
+    // glRotatef(orbit_phi, 1.0, 0.0, 0.0);
+    // glRotatef(orbit_theta, 0.0, 1.0, 0.0);
+    // glRotatef(orbit_delta, 0.0, 0.0, 1.0);
+    // glTranslatef(-model_center.pos[0], -model_center.pos[1], -model_center.pos[2]);
 }
 
 #endif
