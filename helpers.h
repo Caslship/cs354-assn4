@@ -110,13 +110,10 @@ void InitializeGUI(void)
             transform_type_select = glui->add_listbox_to_panel(transform_node_panel, "Type ", &transform_type_index, TRANSFORM_TYPE_LB_ID, Control);
             for(int i = 0; i < 3; i++)
                 transform_type_select->add_item(i, transform_type_list[i].c_str());
-            transform_type_select->set_alignment(GLUI_ALIGN_RIGHT);
+            transform_type_select->set_alignment(GLUI_ALIGN_LEFT);
 
-            // Coordinate type selection listbox
-            // transform_coord_type_select = glui->add_listbox_to_panel(transform_node_panel, "Coords ", &transform_coord_type_index);
-            // for (int i = 0; i < 2; i++)
-            //     transform_coord_type_select->add_item(i, transform_coord_type_list[i].c_str());
-            // transform_coord_type_select->set_alignment(GLUI_ALIGN_RIGHT);
+            // Animation flag checkbox
+            animation_param = glui->add_checkbox_to_panel(transform_node_panel, "Animation");
 
             glui->add_separator_to_panel(transform_node_panel);
 
@@ -252,6 +249,7 @@ void UpdateGUI(int old_children_vec_size)
         transform_node_panel->open();
 
         transform_type_select->enable();
+        animation_param->enable();
         x_param->enable();
         y_param->enable();
         z_param->enable();
@@ -266,6 +264,7 @@ void UpdateGUI(int old_children_vec_size)
                 )->id
             );
 
+        animation_param->set_int_val(((TransformNode *)curr_node)->getAnimationFlag());
         x_param->set_float_val(((TransformNode *)curr_node)->getX());
         y_param->set_float_val(((TransformNode *)curr_node)->getY());
         z_param->set_float_val(((TransformNode *)curr_node)->getZ());

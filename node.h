@@ -383,6 +383,9 @@ void TransformNode::setParams(std::string transform_type, float xyz[], float the
 
 void TransformNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
+    if (!animation_flag)
+        animation_transform = glm::mat4(1.0);
+    
     if (transform_type == "Scale")
     {
         glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(xyz[0], xyz[1], xyz[2]));

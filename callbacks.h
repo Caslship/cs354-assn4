@@ -53,6 +53,7 @@ GLUI_EditText * x_param;
 GLUI_EditText * y_param;
 GLUI_EditText * z_param;
 GLUI_EditText * theta_param;
+GLUI_Checkbox * animation_param;
 GLUI_Rollout * camera_node_panel;
 GLUI_EditText * vx_param;
 GLUI_EditText * vy_param;
@@ -139,7 +140,9 @@ void Keyboard(unsigned char key, int x, int y)
 void Idle(void)
 {
     if (glutGetWindow() != main_window) 
-        glutSetWindow(main_window);   
+        glutSetWindow(main_window);
+
+    glutPostRedisplay(); 
 }
 
 void Control(int control_id)
@@ -278,8 +281,9 @@ void Control(int control_id)
                 string transform_type = transform_type_list[transform_type_index];
                 float xyz[3] = { x_param->get_float_val(), y_param->get_float_val(), z_param->get_float_val() };
                 float theta = theta_param->get_float_val();
+                bool animation_flag = animation_param->get_int_val();
 
-                ((TransformNode *)curr_node)->setParams(transform_type, xyz, theta);
+                ((TransformNode *)curr_node)->setParams(transform_type, xyz, theta, animation_flag);
             }
             else if (curr_node_type == "Camera")
             {
