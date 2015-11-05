@@ -213,6 +213,12 @@ void UpdateGUI(int old_children_vec_size)
 
         child_node_select->enable();
         select_child_node->enable();
+
+        child_node_select->do_selection(
+            child_node_select->get_item_ptr(
+                children_node_type_vec[0].c_str()
+                )->id
+            );
     }
 
     if (!is_root)
@@ -254,6 +260,12 @@ void UpdateGUI(int old_children_vec_size)
         if (!rotation_node_selected)
             theta_param->disable();
 
+        transform_type_select->do_selection(
+            transform_type_select->get_item_ptr(
+                (((TransformNode *)curr_node)->getTransformType()).c_str()
+                )->id
+            );
+
         x_param->set_float_val(((TransformNode *)curr_node)->getX());
         y_param->set_float_val(((TransformNode *)curr_node)->getY());
         z_param->set_float_val(((TransformNode *)curr_node)->getZ());
@@ -273,6 +285,12 @@ void UpdateGUI(int old_children_vec_size)
         light_node_panel->open();
 
         light_type_select->enable();
+
+        light_type_select->do_selection(
+            light_type_select->get_item_ptr(
+                (((LightNode *)curr_node)->getLightType()).c_str()
+                )->id
+            );
     }
 
     if (!is_camera_type && !is_root && !(is_light_type && light_count == 1))

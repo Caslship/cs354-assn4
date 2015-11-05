@@ -168,9 +168,37 @@ void Control(int control_id)
             break;
         }
         case NODE_TYPE_LB_ID:
-        case TRANSFORM_TYPE_LB_ID:
         {
             // The only thing we need is for the GUI to update
+            break;
+        }
+        case TRANSFORM_TYPE_LB_ID:
+        {
+            string curr_transform_type = ((TransformNode *)curr_node)->getTransformType();
+            string transform_type = transform_type_list[transform_type_index];
+            float xyz[3];
+            float theta = 0.0;
+
+            if (transform_type == curr_transform_type)
+                break;
+
+            if (transform_type == "Scale" || transform_type == "Rotate")
+            {
+                xyz[0] = 1.0;
+                xyz[1] = 1.0;
+                xyz[2] = 1.0;
+
+                ((TransformNode *)curr_node)->setParams(transform_type, xyz, theta);
+            }
+            else if (transform_type == "Translate")
+            {
+                xyz[0] = 0.0;
+                xyz[1] = 0.0;
+                xyz[2] = 0.0;
+
+                ((TransformNode *)curr_node)->setParams(transform_type, xyz, theta);
+            }
+
             break;
         }
         case CHILD_NODE_ADD_B_ID:
@@ -202,7 +230,6 @@ void Control(int control_id)
                     if (scenegraph.incLightCount())
                         LightNode * light_node = new LightNode(light_ids[scenegraph.getLightCount() - 1], curr_node);
 
-                    cout << scenegraph.getLightCount() << endl;
                     break;
                 }
             }

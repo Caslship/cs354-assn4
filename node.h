@@ -320,6 +320,7 @@ public:
     float getZ(void);
     float getTheta(void);
     bool getAnimationFlag(void);
+    void setType(std::string transform_type = "Scale");
     void setParams(std::string transform_type, float xyz[], float theta = 0.0, bool animation_flag = false);
     void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
@@ -366,6 +367,11 @@ bool TransformNode::getAnimationFlag(void)
     return animation_flag;
 }
 
+void TransformNode::setType(std::string transform_type)
+{
+    this->transform_type = transform_type;
+}
+
 void TransformNode::setParams(std::string transform_type, float xyz[], float theta, bool animation_flag)
 {
     this->transform_type = transform_type;
@@ -403,7 +409,7 @@ void TransformNode::traverseNode(glm::mat4 transform, std::string render_type)
     }
     else if (transform_type == "Rotate")
     {
-        glm::mat4 rotate = glm::rotate(glm::mat4(1.0), theta, glm::vec3(xyz[0], xyz[1], xyz[2]));
+        glm::mat4 rotate = glm::rotate(glm::mat4(1.0), glm::radians(theta), glm::vec3(xyz[0], xyz[1], xyz[2]));
         
         if (animation_flag)
         {
@@ -483,6 +489,7 @@ public:
     LightNode(void) : light_type("Point"), light_id(GL_LIGHT0), Node(NULL, "Light") {}
     LightNode(GLenum light_id, Node * parent) : light_type("Point"), light_id(light_id), Node(parent, "Light") {}
     ~LightNode();
+    std::string getLightType(void);
     void setId(GLenum light_id = GL_LIGHT0);
     void setType(std::string light_type = "Point");
     void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
@@ -491,6 +498,11 @@ public:
 LightNode::~LightNode(void)
 {
     glDisable(light_id);
+}
+
+std::string LightNode::getLightType(void)
+{
+    return light_type;
 }
 
 void LightNode::setId(GLenum light_id)
@@ -727,7 +739,6 @@ void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
     glm::vec4 final_camera_pos = transform * glm::vec4(camera_pos.x, camera_pos.y, camera_pos.z, 1.0);
     glm::vec4 final_look_at_pos = transform * glm::vec4(look_at_pos.x, look_at_pos.y, look_at_pos.z, 1.0);
 
-    // glm::mat4 view_mat = glm::lookAt(camera_pos, look_at_pos, up_vec);
     glm::mat4 view_mat = glm::lookAt(
         glm::vec3(final_camera_pos.x, final_camera_pos.y, final_camera_pos.z),
         glm::vec3(final_look_at_pos.x, final_look_at_pos.y, final_look_at_pos.z), 
