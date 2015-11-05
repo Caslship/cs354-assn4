@@ -103,8 +103,6 @@ void Reshape(int w, int h)
     int vx = camera_node->getViewportX();
     int vy = camera_node->getViewportY();
 
-
-
     glViewport(vx, vy, w, h);
 
     glMatrixMode(GL_PROJECTION);

@@ -21,7 +21,7 @@
 
 #define VIEWING_DISTANCE_MIN  0.1
 #define ZOOM_SPEED 5.0
-#define ORBIT_SPEED 0.5
+#define ORBIT_SPEED 0.1
 #define PAN_SPEED 0.01
 
 using namespace std;
@@ -500,13 +500,15 @@ void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
 class CameraNode : public Node
 {
 private:
-    glm::vec4 pos;
-    glm::vec3 look_at_vec;
+    glm::vec3 pos;
+    glm::vec3 forward_vec;
+    glm::vec3 right_vec;
+    glm::vec3 up_vec;
 
     // Orbit
     bool orbit_flag;
     int old_orbit_x, old_orbit_y;
-    float orbit_theta, orbit_phi;
+    GLfloat orbit_theta, orbit_phi;
 
     // Zoom
     bool zoom_flag;
@@ -516,11 +518,13 @@ private:
     // Pan
     bool pan_flag;
     int old_pan_x, old_pan_y;
-    float pan_x, pan_y;
+    // float pan_x, pan_y;
 
     // Viewport
     int vx;
     int vy;
+
+    void updateVectors(void);
 
 public:
     CameraNode(void);
@@ -533,30 +537,49 @@ public:
     void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
 
-CameraNode::CameraNode(void) : pos(0.0, 0.0, -10.0, 1.0), look_at_vec(0.0, 0.0, -1.0), Node(NULL, "Camera")
+CameraNode::CameraNode(void) : pos(0.0, 0.0, -10.0), Node(NULL, "Camera")
 {
     orbit_flag = false;
     zoom_flag = false;
     pan_flag = false;
 
-    orbit_theta = 0.0, orbit_phi = 0.0;
-    pan_x = 0.0, pan_y = 0.0;
+    orbit_theta = -90.0, orbit_phi = 0.0;
+    // pan_x = 0.0, pan_y = 0.0;
     zoom_level = 50.0 * VIEWING_DISTANCE_MIN;
 
     vx = 0, vy = 0;
+
+    updateVectors();
 }
 
-CameraNode::CameraNode(Node * parent) : pos(0.0, 0.0, -10.0, 1.0), look_at_vec(0.0, 0.0, -1.0), Node(parent, "Camera")
+CameraNode::CameraNode(Node * parent) : pos(0.0, 0.0, -10.0), Node(parent, "Camera")
 {
     orbit_flag = false;
     zoom_flag = false;
     pan_flag = false;
 
-    orbit_theta = 0.0, orbit_phi = 0.0;
-    pan_x = 0.0, pan_y = 0.0;
+    orbit_theta = -90.0, orbit_phi = 0.0;
+    // pan_x = 0.0, pan_y = 0.0;
     zoom_level = 50.0 * VIEWING_DISTANCE_MIN;
 
     vx = 0, vy = 0;
+
+    updateVectors();
+}
+
+void CameraNode::updateVectors(void)
+{
+    // Update front vector and then normalize it
+    forward_vec.x = cos(glm::radians(orbit_theta)) * cos(glm::radians(orbit_phi));
+    forward_vec.y = sin(glm::radians(orbit_phi));
+    forward_vec.z = sin(glm::radians(orbit_theta)) * cos(glm::radians(orbit_phi));
+    forward_vec = glm::normalize(forward_vec);
+
+    // Update right vector by crossing with forward and world up vectors
+    right_vec = glm::normalize(glm::cross(forward_vec, glm::vec3(0.0, 1.0, 0.0)));
+
+    // Update up vector by crossing with right and forward vectors
+    up_vec = glm::normalize(glm::cross(right_vec, forward_vec));  
 }
 
 int CameraNode::getViewportX(void)
@@ -583,12 +606,12 @@ void CameraNode::processMouseButton(int button, int state, int x, int y)
         old_orbit_x = x;
         old_orbit_y = y;
     }
-    else if ((zoom_flag = ((state == GLUT_DOWN) && (button == GLUT_RIGHT_BUTTON))))
+    else if ((zoom_flag = ((state == GLUT_DOWN) && (button == GLUT_MIDDLE_BUTTON))))
     {
         // Zoom
         old_zoom_level = y - (ZOOM_SPEED * zoom_level);
     }
-    else if ((pan_flag = ((state == GLUT_DOWN) && (button == GLUT_MIDDLE_BUTTON))))
+    else if ((pan_flag = ((state == GLUT_DOWN) && (button == GLUT_RIGHT_BUTTON))))
     {
         // Pan
         old_pan_x = x;
@@ -602,7 +625,14 @@ void CameraNode::processMouseMotion(int x, int y)
     {
         // Orbit
         orbit_theta += ((x - old_orbit_x) * ORBIT_SPEED);
-        orbit_phi += ((y - old_orbit_y) * ORBIT_SPEED);
+        orbit_phi += ((old_orbit_y - y) * ORBIT_SPEED);
+
+        if (orbit_phi > 89.0)
+            orbit_phi = 89.0;
+        else if (orbit_phi < -89.0)
+            orbit_phi = -89.0;
+
+        updateVectors();
 
         old_orbit_x = x;
         old_orbit_y = y;
@@ -621,8 +651,11 @@ void CameraNode::processMouseMotion(int x, int y)
     else if (pan_flag)
     {
         // Pan
-        pan_x += (x - old_pan_x) * PAN_SPEED;
-        pan_y += (old_pan_y - y) * PAN_SPEED;
+        // pan_x += (x - old_pan_x) * PAN_SPEED;
+        // pan_y += (old_pan_y - y) * PAN_SPEED;
+
+        pos += ((GLfloat)((x - old_pan_x) * PAN_SPEED) * right_vec);
+        pos += ((GLfloat)((old_pan_y - y) * PAN_SPEED) * up_vec);
 
         old_pan_x = x;
         old_pan_y = y;
@@ -633,14 +666,15 @@ void CameraNode::processMouseMotion(int x, int y)
 
 void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
-    glm::vec4 camera_pos = transform * pos;
-    glm::vec3 look_at_pos = glm::vec3(camera_pos.x * look_at_vec.x, camera_pos.y * look_at_vec.y, camera_pos.z * look_at_vec.z);
+    glm::mat4 view_mat = glm::lookAt(pos, pos + forward_vec, up_vec);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(  camera_pos.x, camera_pos.y, camera_pos.z, 
-                look_at_pos.x, look_at_pos.y, look_at_pos.z, 
-                0.0, 1.0, 0.0   );
+
+    glMultMatrixf(glm::value_ptr(view_mat));
+    // gluLookAt(  camera_pos.x, camera_pos.y, camera_pos.z, 
+    //             look_at_pos.x, look_at_pos.y, look_at_pos.z, 
+    //             0.0, 1.0, 0.0   );
 
     // vertex_t model_center;
     // float pos[0] = {};
