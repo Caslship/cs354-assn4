@@ -304,6 +304,9 @@ void Trimesh::render(std::string render_type)
         // Set all vertex colors to white
         glColor4f(1.0, 1.0, 1.0, 1.0);
 
+        // Set all vertex normals to default normal
+        glNormal3f(0.0, 0.0, 1.0);
+
         for (int i = 0; i < tri_vec_size; i++)
         {
             // Set normal for triangle if specified by show_norm_flag

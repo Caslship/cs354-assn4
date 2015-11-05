@@ -392,8 +392,8 @@ class AttributeNode : public Node
 private:
     std::string render_type;
 public:
-    AttributeNode(void) : render_type("Solid"), Node(NULL, "Attribute") {}
-    AttributeNode(Node * parent) : render_type("Solid"), Node(parent, "Attribute") {}
+    AttributeNode(void) : render_type("Shaded"), Node(NULL, "Attribute") {}
+    AttributeNode(Node * parent) : render_type("Shaded"), Node(parent, "Attribute") {}
     void setParams(std::string render_type);
     void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
@@ -418,6 +418,7 @@ void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
     else if (this->render_type == "Solid")
     {
         // Solid mode
+        glDisable(GL_LIGHTING);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     else if (this->render_type == "Shaded")
@@ -437,6 +438,7 @@ void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
     }
 
     Node::traverseNode(transform, this->render_type);
+    glEnable(GL_LIGHTING);
 }
 
 class LightNode : public Node
@@ -484,6 +486,20 @@ void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
     // Enable light
     glEnable(light_id);
     glLightfv(light_id, GL_POSITION, light_pos);
+
+    glDisable(GL_LIGHTING);
+
+    glPointSize(20.0);
+    glBegin(GL_POINTS);
+
+        glColor4f(1.0, 0.95, 0.3, 1.0);
+        glVertex3f(light_pos[0], light_pos[1], light_pos[2]);
+        glColor4f(1.0, 1.0, 1.0, 1.0);
+
+    glEnd();
+    glPointSize(1.0);
+
+    glEnable(GL_LIGHTING);
 }
 
 class CameraNode : public Node
@@ -621,6 +637,10 @@ void CameraNode::processMouseMotion(int x, int y)
 
         updateVectors();
 
+        // pos.x = 10 * cos(glm::radians(orbit_theta)) * cos(glm::radians(orbit_phi));
+        // pos.y = -10 * sin(glm::radians(orbit_phi));
+        // pos.z = 10 * sin(glm::radians(orbit_theta)) * cos(glm::radians(orbit_phi));
+
         old_orbit_x = x;
         old_orbit_y = y;
 
@@ -650,7 +670,9 @@ void CameraNode::processMouseMotion(int x, int y)
 
 void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
-    glm::mat4 view_mat = glm::lookAt(pos, pos + forward_vec, up_vec);
+    glm::mat4 view_mat = glm::lookAt(pos, /*glm::vec3(0.0, 0.0, 0.0)*/ pos + forward_vec, up_vec);
+
+    view_mat = transform * view_mat;
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
