@@ -202,6 +202,7 @@ void Control(int control_id)
                     if (scenegraph.incLightCount())
                         LightNode * light_node = new LightNode(light_ids[scenegraph.getLightCount() - 1], curr_node);
 
+                    cout << scenegraph.getLightCount() << endl;
                     break;
                 }
             }
@@ -217,12 +218,6 @@ void Control(int control_id)
                     curr_node->addParent(object_node);
                     break;
                 }
-                case 1:
-                {
-                    GeometryNode * geom_node = new GeometryNode();
-                    curr_node->addParent(geom_node);
-                    break;
-                }
                 case 2:
                 {
                     TransformNode * transform_node = new TransformNode();
@@ -233,15 +228,6 @@ void Control(int control_id)
                 {
                     AttributeNode * attr_node = new AttributeNode();
                     curr_node->addParent(attr_node);
-                    break;
-                }
-                case 4:
-                {
-                    if (scenegraph.incLightCount())
-                    {
-                        LightNode * light_node = new LightNode(light_ids[scenegraph.getLightCount() - 1], NULL);
-                        curr_node->addParent(light_node);
-                    }
                     break;
                 }
             }

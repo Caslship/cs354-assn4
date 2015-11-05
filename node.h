@@ -308,6 +308,8 @@ private:
     std::string transform_type;
     float xyz[3];
     float theta;
+    bool animation_flag;
+    glm::mat4 animation_transform;
 
 public:
     TransformNode(void);
@@ -317,20 +319,21 @@ public:
     float getY(void);
     float getZ(void);
     float getTheta(void);
-    void setParams(std::string transform_type, float xyz[], float theta = 0.0);
+    bool getAnimationFlag(void);
+    void setParams(std::string transform_type, float xyz[], float theta = 0.0, bool animation_flag = false);
     void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
 
-TransformNode::TransformNode(void) : Node(NULL, "Transform")
+TransformNode::TransformNode(void) : animation_transform(1.0), Node(NULL, "Transform")
 {
     float xyz[] = { 1.0, 1.0, 1.0 };
-    setParams("Scale", xyz, 0.0);
+    setParams("Scale", xyz, 0.0, false);
 }
 
-TransformNode::TransformNode(Node * parent) : Node(parent, "Transform")
+TransformNode::TransformNode(Node * parent) : animation_transform(1.0), Node(parent, "Transform")
 {
     float xyz[] = { 1.0, 1.0, 1.0 };
-    setParams("Scale", xyz, 0.0);
+    setParams("Scale", xyz, 0.0, false);
 }
 
 std::string TransformNode::getTransformType(void)
@@ -358,12 +361,18 @@ float TransformNode::getTheta(void)
     return theta;
 }
 
-void TransformNode::setParams(std::string transform_type, float xyz[], float theta)
+bool TransformNode::getAnimationFlag(void)
+{
+    return animation_flag;
+}
+
+void TransformNode::setParams(std::string transform_type, float xyz[], float theta, bool animation_flag)
 {
     this->transform_type = transform_type;
     for (int i = 0; i < 3; i++)
         this->xyz[i] = xyz[i];
     this->theta = theta;
+    this->animation_flag = animation_flag;
 }
 
 void TransformNode::traverseNode(glm::mat4 transform, std::string render_type)
@@ -371,17 +380,38 @@ void TransformNode::traverseNode(glm::mat4 transform, std::string render_type)
     if (transform_type == "Scale")
     {
         glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(xyz[0], xyz[1], xyz[2]));
-        transform = scale * transform;
+
+        if (animation_flag)
+        {
+            animation_transform = scale * animation_transform;
+            transform = animation_transform * transform;
+        }
+        else
+            transform = scale * transform;
     }
     else if (transform_type == "Translate")
     {
         glm::mat4 translate = glm::translate(glm::mat4(1.0), glm::vec3(xyz[0], xyz[1], xyz[2]));
-        transform = translate * transform;
+
+        if (animation_flag)
+        {
+            animation_transform = translate * animation_transform;
+            transform = animation_transform * transform;
+        }
+        else     
+            transform = translate * transform;
     }
     else if (transform_type == "Rotate")
     {
         glm::mat4 rotate = glm::rotate(glm::mat4(1.0), theta, glm::vec3(xyz[0], xyz[1], xyz[2]));
-        transform = rotate * transform;
+        
+        if (animation_flag)
+        {
+            animation_transform = rotate * animation_transform;
+            transform = animation_transform * transform;
+        }
+        else     
+            transform = rotate * transform;
     }
 
     Node::traverseNode(transform, render_type);
@@ -694,8 +724,6 @@ void CameraNode::processMouseMotion(int x, int y)
 
 void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
-    // std::cout << pos.x << " | " << pos.y << " | " << pos.z << std::endl;
-
     glm::vec4 final_camera_pos = transform * glm::vec4(camera_pos.x, camera_pos.y, camera_pos.z, 1.0);
     glm::vec4 final_look_at_pos = transform * glm::vec4(look_at_pos.x, look_at_pos.y, look_at_pos.z, 1.0);
 

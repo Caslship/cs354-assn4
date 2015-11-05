@@ -17,6 +17,7 @@ private:
     CameraNode * camera_node;
     Node * curr_node;
     int light_count;
+    int free_light_id;
 
 public:
     SceneGraphContainer(void);
@@ -25,6 +26,7 @@ public:
     CameraNode * getCameraNode(void);
     Node * getCurrentNode(void);;
     int getLightCount(void);
+    int getFreeLightId(void);
     void setCurrentNode(Node * new_curr_node);
     bool decLightCount(void);
     bool incLightCount(void);
@@ -39,6 +41,7 @@ SceneGraphContainer::SceneGraphContainer(void)
 
     LightNode * light_node = new LightNode(GL_LIGHT0, root_node);
     light_count = 1;
+    free_light_id = 1;
     ObjectNode * object_node = new ObjectNode(root_node);
 }
 
@@ -65,6 +68,11 @@ Node * SceneGraphContainer::getCurrentNode(void)
 int SceneGraphContainer::getLightCount(void)
 {
     return light_count;
+}
+
+int SceneGraphContainer::getFreeLightId(void)
+{
+    return free_light_id;
 }
 
 void SceneGraphContainer::setCurrentNode(Node * new_curr_node)
