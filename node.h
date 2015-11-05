@@ -408,41 +408,31 @@ void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
     if (this->render_type == "Points")
     {
         // Point mode
-        glDisable(GL_NORMALIZE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
     }
     else if (this->render_type == "Wireframe")
     {
         // Wireframe mode
-        glDisable(GL_NORMALIZE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     else if (this->render_type == "Solid")
     {
         // Solid mode
-        glDisable(GL_NORMALIZE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     else if (this->render_type == "Shaded")
     {
         // Shaded mode
-        glDisable(GL_NORMALIZE);
-        glEnable(GL_LIGHTING);
-        glEnable(GL_COLOR_MATERIAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     else if (this->render_type == "Face Normals")
     {
         // Face normals mode
-        glEnable(GL_NORMALIZE);
-        glEnable(GL_COLOR_MATERIAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     else if (this->render_type == "Vertex Normals")
     {
         // Vertex normals mode
-        glEnable(GL_NORMALIZE);
-        glEnable(GL_COLOR_MATERIAL);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
@@ -492,7 +482,6 @@ void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
         light_pos[3] = 0.0;
 
     // Enable light
-    glEnable(GL_LIGHTING);
     glEnable(light_id);
     glLightfv(light_id, GL_POSITION, light_pos);
 }
@@ -518,7 +507,6 @@ private:
     // Pan
     bool pan_flag;
     int old_pan_x, old_pan_y;
-    // float pan_x, pan_y;
 
     // Viewport
     int vx;
@@ -543,8 +531,7 @@ CameraNode::CameraNode(void) : pos(0.0, 0.0, -10.0), Node(NULL, "Camera")
     zoom_flag = false;
     pan_flag = false;
 
-    orbit_theta = -90.0, orbit_phi = 0.0;
-    // pan_x = 0.0, pan_y = 0.0;
+    orbit_theta = 90.0, orbit_phi = 0.0;
     zoom_level = 50.0 * VIEWING_DISTANCE_MIN;
 
     vx = 0, vy = 0;
@@ -558,8 +545,7 @@ CameraNode::CameraNode(Node * parent) : pos(0.0, 0.0, -10.0), Node(parent, "Came
     zoom_flag = false;
     pan_flag = false;
 
-    orbit_theta = -90.0, orbit_phi = 0.0;
-    // pan_x = 0.0, pan_y = 0.0;
+    orbit_theta = 90.0, orbit_phi = 0.0;
     zoom_level = 50.0 * VIEWING_DISTANCE_MIN;
 
     vx = 0, vy = 0;
@@ -632,6 +618,7 @@ void CameraNode::processMouseMotion(int x, int y)
         else if (orbit_phi < -89.0)
             orbit_phi = -89.0;
 
+
         updateVectors();
 
         old_orbit_x = x;
@@ -651,9 +638,6 @@ void CameraNode::processMouseMotion(int x, int y)
     else if (pan_flag)
     {
         // Pan
-        // pan_x += (x - old_pan_x) * PAN_SPEED;
-        // pan_y += (old_pan_y - y) * PAN_SPEED;
-
         pos += ((GLfloat)((x - old_pan_x) * PAN_SPEED) * right_vec);
         pos += ((GLfloat)((old_pan_y - y) * PAN_SPEED) * up_vec);
 

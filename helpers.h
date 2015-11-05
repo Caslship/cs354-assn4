@@ -34,6 +34,8 @@ void InitializeWindow(int& argc, char ** argv)
 void InitializeGraphics(void)
 {
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_NORMALIZE);
     glDepthFunc(GL_LESS);
     glShadeModel(GL_SMOOTH);
 }
