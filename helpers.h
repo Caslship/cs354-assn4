@@ -36,6 +36,7 @@ void InitializeGraphics(void)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
     glEnable(GL_NORMALIZE);
+    glEnable(GL_COLOR_MATERIAL);
     glDepthFunc(GL_LESS);
     glShadeModel(GL_SMOOTH);
 }
@@ -212,8 +213,6 @@ void UpdateGUI(int old_children_vec_size)
 
         child_node_select->enable();
         select_child_node->enable();
-
-        child_node_select->do_selection(0);
     }
 
     if (!is_root)
