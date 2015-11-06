@@ -211,11 +211,11 @@ void UpdateGUI(int old_children_vec_size)
         child_node_select->enable();
         select_child_node->enable();
 
-        child_node_select->do_selection(
-            child_node_select->get_item_ptr(
-                children_node_type_vec[0].c_str()
-                )->id
-            );
+        child_node_index = child_node_select->get_item_ptr(
+            children_node_type_vec[0].c_str()
+            )->id;
+
+        child_node_select->do_selection(child_node_index);
     }
 
     if (!is_root)
@@ -258,11 +258,11 @@ void UpdateGUI(int old_children_vec_size)
         if (!rotation_node_selected)
             theta_param->disable();
 
-        transform_type_select->do_selection(
-            transform_type_select->get_item_ptr(
-                (((TransformNode *)curr_node)->getTransformType()).c_str()
-                )->id
-            );
+        transform_type_index = transform_type_select->get_item_ptr(
+            (((TransformNode *)curr_node)->getTransformType()).c_str()
+            )->id;
+
+        transform_type_select->do_selection(transform_type_index);
 
         animation_param->set_int_val(((TransformNode *)curr_node)->getAnimationFlag());
         x_param->set_float_val(((TransformNode *)curr_node)->getX());
@@ -285,11 +285,11 @@ void UpdateGUI(int old_children_vec_size)
 
         light_type_select->enable();
 
-        light_type_select->do_selection(
-            light_type_select->get_item_ptr(
-                (((LightNode *)curr_node)->getLightType()).c_str()
-                )->id
-            );
+        light_type_index = light_type_select->get_item_ptr(
+            (((LightNode *)curr_node)->getLightType()).c_str()
+            )->id;
+
+        light_type_select->do_selection(light_type_index);
     }
 
     if (!is_camera_type && !is_root && !(is_light_type && light_count == 1))
@@ -297,6 +297,8 @@ void UpdateGUI(int old_children_vec_size)
 
     if (!is_root)
         update_node->enable();
+
+    GLUI_Master.sync_live_all();
 }
 
 #endif
