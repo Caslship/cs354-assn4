@@ -512,7 +512,8 @@ void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
 
     // Have transformation matrix define where it should be placed
     pos = transform * pos;
-    float light_pos[] = { pos.x, pos.y, pos.z, pos.w };
+    GLfloat light_pos[] = { pos.x, pos.y, pos.z, pos.w };
+    GLfloat light_diffuse_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 
     // Set w component to 0 if we have a directional light
     if (light_type == "Directional")
@@ -521,6 +522,8 @@ void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
     // Enable light
     glEnable(light_id);
     glLightfv(light_id, GL_POSITION, light_pos);
+    glLightfv(light_id, GL_DIFFUSE, light_diffuse_specular);
+    glLightfv(light_id, GL_SPECULAR, light_diffuse_specular);
 
     glDisable(GL_LIGHTING);
 
