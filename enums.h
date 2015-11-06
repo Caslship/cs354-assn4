@@ -8,6 +8,11 @@
 #ifndef __ENUMS_H__
 #define __ENUMS_H__
 
+#define VIEWING_DISTANCE_MIN  0.1
+#define ZOOM_SPEED 0.05
+#define ORBIT_SPEED 0.1
+#define PAN_SPEED 0.01
+
 // Widget IDs for callbacks
 enum GLUI_WIDGET_ID
 {

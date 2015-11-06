@@ -10,6 +10,9 @@
 
 #include <GL/glut.h>
 #include <GL/glui.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -299,6 +302,21 @@ void UpdateGUI(int old_children_vec_size)
         update_node->enable();
 
     GLUI_Master.sync_live_all();
+}
+
+void UpdateCameraGivenMesh(Trimesh model)
+{
+    CameraNode * camera_node = scenegraph.getCameraNode();
+
+    // Get new look at point
+    vertex_t model_center = model.getCenter();
+
+    // Get an appropriate starting orbit radius
+    GLfloat orbit_radius = model.getBoundingLength() * 1.5;
+    orbit_radius = (orbit_radius < VIEWING_DISTANCE_MIN ? VIEWING_DISTANCE_MIN : orbit_radius);
+
+    // Update camera
+    camera_node->updateCameraGivenParams(glm::vec3(model_center.pos[0], model_center.pos[1], model_center.pos[2]), orbit_radius); 
 }
 
 #endif
