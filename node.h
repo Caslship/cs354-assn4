@@ -737,8 +737,10 @@ void CameraNode::processMouseMotion(int x, int y)
 
 void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
-    glm::vec4 final_camera_pos = transform * glm::vec4(camera_pos.x, camera_pos.y, camera_pos.z, 1.0);
-    glm::vec4 final_look_at_pos = transform * glm::vec4(look_at_pos.x, look_at_pos.y, look_at_pos.z, 1.0);
+    glm::mat4 final_transform = glm::translate(glm::mat4(1.0), glm::vec3(look_at_pos)) * transform * glm::translate(glm::mat4(1.0), glm::vec3((GLfloat)-1.0 * look_at_pos));
+
+    glm::vec4 final_camera_pos = final_transform * glm::vec4(camera_pos.x, camera_pos.y, camera_pos.z, 1.0);
+    glm::vec4 final_look_at_pos = final_transform * glm::vec4(look_at_pos.x, look_at_pos.y, look_at_pos.z, 1.0);
 
     glm::mat4 view_mat = glm::lookAt(
         glm::vec3(final_camera_pos.x, final_camera_pos.y, final_camera_pos.z),
