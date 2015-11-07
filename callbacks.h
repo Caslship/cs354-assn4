@@ -74,9 +74,7 @@ int light_type_index = 0;
 string render_type_list[] = { "Points", "Wireframe", "Solid", "Shaded", "Face Normals", "Vertex Normals" };
 string node_type_list[] = { "Object", "Geometry", "Transform", "Attribute", "Light" };
 string transform_type_list[] = { "Scale", "Translate", "Rotate" };
-// string transform_coord_type_list[] = { "World", "View" };
 string light_type_list[] = { "Point", "Directional" };
-const GLenum light_ids[] = { GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7 };
 
 extern void UpdateGUI(int);
 
@@ -230,8 +228,9 @@ void Control(int control_id)
                 }
                 case 4:
                 {
-                    if (scenegraph.incLightCount())
-                        LightNode * light_node = new LightNode(light_ids[scenegraph.getLightCount() - 1], curr_node);
+                    GLenum light_id;
+                    if ((light_id = scenegraph.addLight()) != GL_INVALID_ENUM)
+                        LightNode * light_node = new LightNode(light_id, curr_node);
 
                     break;
                 }
@@ -312,7 +311,7 @@ void Control(int control_id)
 
             if (parent != NULL && curr_node != scenegraph.getRootNode() && curr_node_type != "Camera")
             {
-                if (curr_node_type == "Light" && !scenegraph.decLightCount())
+                if (curr_node_type == "Light" && !scenegraph.removeLight(((LightNode *)curr_node)->getLightId()))
                     break;
 
                 curr_node->removeNode();

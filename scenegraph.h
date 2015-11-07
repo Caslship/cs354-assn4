@@ -8,6 +8,8 @@
 #ifndef __SCENEGRAPH_H__
 #define __SCENEGRAPH_H__
 
+#include <GL/glut.h>
+#include <stack>
 #include "node.h"
 
 class SceneGraphContainer
@@ -17,7 +19,7 @@ private:
     CameraNode * camera_node;
     Node * curr_node;
     int light_count;
-    int free_light_id;
+    std::stack<GLenum> free_light_ids;
 
 public:
     SceneGraphContainer(void);
@@ -26,10 +28,9 @@ public:
     CameraNode * getCameraNode(void);
     Node * getCurrentNode(void);;
     int getLightCount(void);
-    int getFreeLightId(void);
+    bool removeLight(GLenum light_id = GL_LIGHT0);
+    GLenum addLight(void);
     void setCurrentNode(Node * new_curr_node);
-    bool decLightCount(void);
-    bool incLightCount(void);
     void traverseGraph(void);
 };
 
@@ -41,7 +42,10 @@ SceneGraphContainer::SceneGraphContainer(void)
 
     LightNode * light_node = new LightNode(GL_LIGHT0, root_node);
     light_count = 1;
-    free_light_id = 1;
+
+    for (int i = 7; i > 0 ; i--)
+        free_light_ids.push(GL_LIGHT0 + i);
+
     ObjectNode * object_node = new ObjectNode(root_node);
 }
 
@@ -70,17 +74,7 @@ int SceneGraphContainer::getLightCount(void)
     return light_count;
 }
 
-int SceneGraphContainer::getFreeLightId(void)
-{
-    return free_light_id;
-}
-
-void SceneGraphContainer::setCurrentNode(Node * new_curr_node)
-{
-    curr_node = new_curr_node;
-}
-
-bool SceneGraphContainer::decLightCount(void)
+bool SceneGraphContainer::removeLight(GLenum light_id)
 {
     light_count--;
 
@@ -90,20 +84,30 @@ bool SceneGraphContainer::decLightCount(void)
         return false;
     }
 
+    free_light_ids.push(light_id);
+
     return true;
 }
 
-bool SceneGraphContainer::incLightCount(void)
+GLenum SceneGraphContainer::addLight(void)
 {
     light_count++;
 
     if (light_count > 8)
     {
         light_count = 8;
-        return false;
+        return GL_INVALID_ENUM;
     }
 
-    return true;
+    GLenum light_id = free_light_ids.top();
+    free_light_ids.pop();
+
+    return light_id;
+}
+
+void SceneGraphContainer::setCurrentNode(Node * new_curr_node)
+{
+    curr_node = new_curr_node;
 }
 
 void SceneGraphContainer::traverseGraph(void)

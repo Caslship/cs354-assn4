@@ -30,7 +30,7 @@ protected:
 public:
     Node(void);
     Node(Node * parent, std::string node_type = "Root");
-    ~Node(void);
+    virtual ~Node(void);
     Node * getChild(int index = 0);
     Node * getParent(void);
     std::string getNodeType(void);
@@ -420,9 +420,15 @@ private:
 public:
     AttributeNode(void) : render_type("Shaded"), Node(NULL, "Attribute") {}
     AttributeNode(Node * parent) : render_type("Shaded"), Node(parent, "Attribute") {}
+    std::string getRenderType(void);
     void setParams(std::string render_type);
     void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
 };
+
+std::string AttributeNode::getRenderType(void)
+{
+    return render_type;
+}
 
 void AttributeNode::setParams(std::string render_type)
 {
@@ -480,6 +486,7 @@ public:
     LightNode(GLenum light_id, Node * parent) : light_type("Point"), light_id(light_id), Node(parent, "Light") {}
     ~LightNode();
     std::string getLightType(void);
+    GLenum getLightId(void);
     void setId(GLenum light_id = GL_LIGHT0);
     void setType(std::string light_type = "Point");
     void traverseNode(glm::mat4 transform = glm::mat4(1.0), std::string render_type = "Solid");
@@ -487,12 +494,22 @@ public:
 
 LightNode::~LightNode(void)
 {
+    GLfloat light_diffuse_specular[] = { 0.0, 0.0, 0.0, 1.0 };
+
+    glLightfv(light_id, GL_DIFFUSE, light_diffuse_specular);
+    glLightfv(light_id, GL_SPECULAR, light_diffuse_specular);
+
     glDisable(light_id);
 }
 
 std::string LightNode::getLightType(void)
 {
     return light_type;
+}
+
+GLenum LightNode::getLightId(void)
+{
+    return light_id;
 }
 
 void LightNode::setId(GLenum light_id)
@@ -672,8 +689,8 @@ int CameraNode::getViewportY(void)
 
 void CameraNode::setViewportXY(int vx, int vy)
 {
-    this->vx = 0;
-    this->vy = 0;
+    this->vx = vx;
+    this->vy = vy;
 }
 
 void CameraNode::processMouseButton(int button, int state, int x, int y)

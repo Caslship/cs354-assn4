@@ -201,7 +201,6 @@ void UpdateGUI(int old_children_vec_size)
     bool camera_node_selected = (node_type_list[node_type_index] == "Camera");
     bool geom_node_selected = (node_type_list[node_type_index] == "Geometry");
     bool light_node_selected = (node_type_list[node_type_index] == "Light");
-    bool rotation_node_selected  = (transform_type_list[transform_type_index] == "Rotate");
 
     for (int i = 0; i < old_children_vec_size; i++)
         child_node_select->delete_item(i);
@@ -236,6 +235,12 @@ void UpdateGUI(int old_children_vec_size)
         attr_node_panel->open();
 
         render_type_select->enable();
+
+        render_type_index = render_type_select->get_item_ptr(
+            (((AttributeNode *)curr_node)->getRenderType()).c_str()
+            )->id;
+
+        render_type_select->do_selection(render_type_index);
     }
     else if (is_geom_type)
     {
@@ -258,14 +263,14 @@ void UpdateGUI(int old_children_vec_size)
         z_param->enable();
         theta_param->enable();
 
-        if (!rotation_node_selected)
-            theta_param->disable();
-
         transform_type_index = transform_type_select->get_item_ptr(
             (((TransformNode *)curr_node)->getTransformType()).c_str()
             )->id;
 
         transform_type_select->do_selection(transform_type_index);
+
+        if (transform_type_list[transform_type_index] != "Rotate" && ((TransformNode *)curr_node)->getTransformType() != "Rotate")
+            theta_param->disable();
 
         animation_param->set_int_val(((TransformNode *)curr_node)->getAnimationFlag());
         x_param->set_float_val(((TransformNode *)curr_node)->getX());
