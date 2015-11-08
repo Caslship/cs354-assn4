@@ -8,7 +8,6 @@
 #ifndef __LOADER_H__
 #define __LOADER_H__
 
-#include <iostream>
 #include <fstream>
 #include <cstring>
 #include "geom.h"

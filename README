@@ -5,11 +5,6 @@
 * UTCS: jason777
 */
 
-COMMAND-LINE ARGUMENTS
-----------------------
-The program accepts a limited number of command line switches:
-
--f <inputfilename>: Read in a file as a series of commands to execute.
 
 MOUSE CONTROLS
 --------------
@@ -25,22 +20,13 @@ With the window as active (make sure the display window is clicked on), differen
 sequences can be input and executed to affect the current view. You may see this input 
 through console output. Input a key sequence and press enter to execute a command:
 
--- L <objectfilename>: Load and display the specified .obj file.
--- D: Pop current object from display stack. Displays previous object.
--- I: Load the identity matrix as the modeling transform.
--- M <render>: Set render mode. The default is solid mode. Options:
----- P: Point mode (just draw vertices).
----- W: Wireframe mode (draw the edges of the mesh).
----- S: Solid mode (draw filled triangles).
----- L: Shaded mode (basic lighting).
----- F: Face normals (basic lighting and rough shading).
----- V: Vertex normals (basic lighting and smooth shading).
--- T <tx> <ty> <tz>: Add a translation to the current modeling transformation.
--- S <sx> <sy> <sz>: Add a scale to the current modeling transformation.
--- R <theta> <ax> <ay> <az>: Add a rotation to the current modeling transformation.
--- V: Subsequent transformations are interpreted in view coordinates.
--- W: Subsequent transformations are interpreted in world coordinates (default setting).
--- Z: Toggle on/off debug mode.
--- Q: Quit the application.
--- [ENTER]: Execute current command.
 -- [ESC]: Quit application.
+
+USER INTERFACE
+--------------
+
+EXTRA CREDIT
+------------
+Please take note of the following
+
+-- Up to 8 different lights can be placed within the scene

@@ -1,3 +1,10 @@
+#
+# Assignment #4
+# Name: Jason Palacios
+# UT EID: jap4839
+# UTCS: jason777
+#
+
 # Linux makefile for CS 354 skeleton code
 ifneq (,$(findstring WINDOWS,$(PATH)))
 	UNAME := Windows
