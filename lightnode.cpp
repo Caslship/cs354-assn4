@@ -13,31 +13,37 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
 
+// Upon deconstructing the light node, disable the light
 LightNode::~LightNode(void)
 {
     glDisable(light_id);
 }
 
+// Get light type
 std::string LightNode::getLightType(void)
 {
     return light_type;
 }
 
+// Get light id
 GLenum LightNode::getLightId(void)
 {
     return light_id;
 }
 
+// Set light id
 void LightNode::setId(GLenum light_id)
 {
     this->light_id = light_id;
 }
 
+// Set light type
 void LightNode::setType(std::string light_type)
 {
     this->light_type = light_type;
 }
 
+// Given a transform to define camera position, set OpenGL light settings and then enable the light
 void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
     // Have lights always start off at origin
@@ -58,6 +64,7 @@ void LightNode::traverseNode(glm::mat4 transform, std::string render_type)
     glLightfv(light_id, GL_DIFFUSE, light_diffuse_specular);
     glLightfv(light_id, GL_SPECULAR, light_diffuse_specular);
 
+    // Visualize light position
     glDisable(GL_LIGHTING);
 
     glPointSize(20.0);

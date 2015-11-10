@@ -9,6 +9,9 @@
 
 #include <GL/glut.h>
 #include <GL/glui.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include "enums.h"
 #include "helpers.h"
@@ -99,16 +102,22 @@ void Reshape(int w, int h)
     g_width = w;
     g_height = h;
 
+    // Grab camera node fov, vx, and vy parameters
     CameraNode * camera_node = scenegraph.getCameraNode();
     float fov = camera_node->getFOV();
     int vx = camera_node->getViewportX();
     int vy = camera_node->getViewportY();
 
+    // Set viewport
     glViewport(vx, vy, w, h);
+
+    // Create projection matrix
+    glm::mat4 projection_mat = glm::perspective(glm::radians(fov), (float)g_width / (float)g_height, g_near_plane, g_far_plane);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fov, (float)g_width / (float)g_height, g_near_plane, g_far_plane);
+
+    glMultMatrixf(glm::value_ptr(projection_mat));
 
     glMatrixMode(GL_MODELVIEW);
 
@@ -137,6 +146,7 @@ void Keyboard(unsigned char key, int x, int y)
     }
 }
 
+// Make sure to set the main window (we do this because of GLUI)
 void Idle(void)
 {
     if (glutGetWindow() != main_window) 
@@ -145,6 +155,7 @@ void Idle(void)
     glutPostRedisplay(); 
 }
 
+// Process all input from GLUI components
 void Control(int control_id)
 {
     Node * curr_node = scenegraph.getCurrentNode();
@@ -154,8 +165,12 @@ void Control(int control_id)
     {
         case CHILD_NODE_SELECT_B_ID:
         {
+            // Select child node
+
+            // Grab child given index
             Node * child_node = curr_node->getChild(child_node_index);
 
+            // Set as new current node
             if (child_node != NULL)
                 scenegraph.setCurrentNode(child_node);
 
@@ -163,8 +178,12 @@ void Control(int control_id)
         }
         case PARENT_NODE_SELECT_B_ID:
         {
+            // Select parent node
+
+            // Grab parent
             Node * parent_node = curr_node->getParent();
 
+            // Set as new current node
             if (parent_node != NULL)
                 scenegraph.setCurrentNode(parent_node);
 
@@ -177,14 +196,18 @@ void Control(int control_id)
         }
         case TRANSFORM_TYPE_LB_ID:
         {
+            // Select transform type
+
             string curr_transform_type = ((TransformNode *)curr_node)->getTransformType();
             string transform_type = transform_type_list[transform_type_index];
             glm::vec3 xyz;
             GLfloat theta = 0.0;
 
+            // Make sure not to update parameters if we haven't changed types
             if (transform_type == curr_transform_type)
                 break;
 
+            // Set appropriate defaults for selected transform type
             if (transform_type == "Scale" || transform_type == "Rotate")
             {
                 xyz.x = 1.0;
@@ -206,6 +229,7 @@ void Control(int control_id)
         }
         case CHILD_NODE_ADD_B_ID:
         {
+            // Add child node
             switch(node_type_index)
             {
                 case 0:
@@ -230,6 +254,7 @@ void Control(int control_id)
                 }
                 case 4:
                 {
+                    // Make sure we can even add another light node
                     GLenum light_id;
                     if ((light_id = scenegraph.addLight()) != GL_INVALID_ENUM)
                         LightNode * light_node = new LightNode(light_id, curr_node);
@@ -241,6 +266,7 @@ void Control(int control_id)
         }
         case PARENT_NODE_ADD_B_ID:
         {
+            // Inject parent node
             switch(node_type_index)
             {
                 case 0:
@@ -266,8 +292,11 @@ void Control(int control_id)
         }
         case CURR_NODE_UPDATE_B_ID:
         {
+            // Update the current node
+
             string curr_node_type = curr_node->getNodeType();
 
+            // Given current node type, update parameters
             if (curr_node_type == "Attribute")
             {
                 string render_type = render_type_list[render_type_index];
@@ -292,6 +321,7 @@ void Control(int control_id)
                 int vx = vx_param->get_int_val();
                 int vy = vy_param->get_int_val();
 
+                // Make sure we don't allow for wacky vx, vy, or fov values
                 if ((vx >= 0 && vx <= g_width) && (vy >= 0 && vy <= g_height) && (fov >= 22.5 && fov <= 67.5))
                 {
                     ((CameraNode *)curr_node)->setFOV(fov);
@@ -310,14 +340,20 @@ void Control(int control_id)
         }
         case CURR_NODE_DELETE_B_ID:
         {
+            // Delete current node
+
+            // Grab parent
             Node * parent = curr_node->getParent();
             string curr_node_type  = curr_node->getNodeType();
 
+            // Ensure deletion is even appropriate
             if (parent != NULL && curr_node != scenegraph.getRootNode() && curr_node_type != "Camera")
             {
+                // We need to ensure at least one light is in the scene
                 if (curr_node_type == "Light" && !scenegraph.removeLight(((LightNode *)curr_node)->getLightId()))
                     break;
 
+                // Remove node and then set the current node to its parent node
                 curr_node->removeNode();
                 scenegraph.setCurrentNode(parent);
             }
@@ -325,6 +361,8 @@ void Control(int control_id)
         }
     }
 
+    // Update GUI given current node
     UpdateGUI(old_children_vec_size);
+    
     glutPostRedisplay();
 }

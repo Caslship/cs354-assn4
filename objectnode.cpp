@@ -13,6 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
 
+// Push current transform and attribute matrices, traverse children, and then pop matrices
 void ObjectNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
     glPushAttrib(GL_POLYGON_BIT);

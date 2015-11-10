@@ -13,16 +13,19 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
 
+// Get render type
 std::string AttributeNode::getRenderType(void)
 {
     return render_type;
 }
 
+// Set render type
 void AttributeNode::setParams(std::string render_type)
 {
     this->render_type = render_type;
 }
 
+// Set appropriate render type for model viewing and then traverse children
 void AttributeNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
     if (this->render_type == "Points")

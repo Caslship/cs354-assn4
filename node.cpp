@@ -12,6 +12,7 @@
 
 Node::Node(void) : parent(NULL), node_type("Root") {}
 
+// When constructing node, set parent node and node type
 Node::Node(Node * parent, std::string node_type)
 {
     this->node_type = node_type;
@@ -21,6 +22,7 @@ Node::Node(Node * parent, std::string node_type)
         addParent(parent);
 }
 
+// When deconstructing node, delete children and remove all ties to parent
 Node::~Node(void)
 {
     // Delete all children
@@ -50,24 +52,29 @@ Node::~Node(void)
     }
 }
 
+// Given an index, return a child node
 Node * Node::getChild(int index)
 {
+    // Ensure we have a valid index
     if (index < 0 || index >= children_vec.size())
         return NULL;
     else
         return children_vec[index];
 }
 
+// Get the parent node
 Node * Node::getParent(void)
 {
     return parent;
 }
 
+// Get the node type
 std::string Node::getNodeType(void)
 {
     return node_type;
 }
 
+// Get a vector of child node types (used with GUI only)
 std::vector<std::string> Node::getChildNodeTypes(void)
 {
     std::vector<std::string> children_node_type_vec;
@@ -81,16 +88,19 @@ std::vector<std::string> Node::getChildNodeTypes(void)
     return children_node_type_vec;
 }
 
+// Get child node count
 int Node::getChildCount(void)
 {
     return children_vec.size();
 }
 
+// Add a child node
 void Node::addChild(Node * child)
 {
     child->addParent(this);
 }
 
+// Inject a parent node
 void Node::addParent(Node * new_parent)
 {
     // We don't want breaks in the graph
@@ -121,6 +131,7 @@ void Node::addParent(Node * new_parent)
     parent = new_parent;
 }
 
+// Simply remove the node by removing all ties to children and parent node
 void Node::removeNode(void)
 {
     // Parent inheritance of current node's children applies to every node but the root
@@ -156,6 +167,7 @@ void Node::removeNode(void)
     delete this;
 }
 
+// Traverse node children and pass down transform matrix and render type
 void Node::traverseNode(glm::mat4 transform, std::string render_type)
 {
     int children_vec_size = children_vec.size();

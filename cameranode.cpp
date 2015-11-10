@@ -24,6 +24,7 @@ CameraNode::CameraNode(void) : camera_pos(0.0, 0.0, 10.0), look_at_pos(0.0, 0.0,
     orbit_phi = 0.0;
     orbit_radius = 10.0;
 
+    // Sensible defaults for projection and viewport
     fov = 45.0;
     vx = 0, vy = 0;
 
@@ -41,12 +42,14 @@ CameraNode::CameraNode(Node * parent) : camera_pos(0.0, 0.0, 10.0), look_at_pos(
     orbit_phi = 0.0;
     orbit_radius = 10.0;
 
+    // Sensible defaults for projection and viewport
     fov = 45.0;
     vx = 0, vy = 0;
 
     updateCameraGivenOrbit();
 }
 
+// Update front, right, and up vectors for consistent camera movement
 void CameraNode::updateVectors(void)
 {
     // Update front vector and then normalize it
@@ -62,23 +65,29 @@ void CameraNode::updateVectors(void)
     up_vec = glm::normalize(glm::cross(right_vec, forward_vec));  
 }
 
+// Update camera position
 void CameraNode::updateCameraGivenOrbit(void)
 {
     updateVectors();
 
+    // Maintain orbit_radius distance away from look_at_pos
     camera_pos.x = look_at_pos.x - (orbit_radius * forward_vec.x);
     camera_pos.y = look_at_pos.y - (orbit_radius * forward_vec.y);
     camera_pos.z = look_at_pos.z - (orbit_radius * forward_vec.z);
 }
 
+// Update camera and look at position given an x and y offset
 void CameraNode::updateCameraGivenPan(GLfloat x_off, GLfloat y_off)
 {
+    // Calculate vector to represent movement
     glm::vec3 pos_off_vec = (x_off * right_vec) + (y_off * up_vec);
 
+    // Update both positions to simulate linear movement
     look_at_pos += pos_off_vec;
     camera_pos += pos_off_vec;
 }
 
+// Update camera position given a look at position, an orbit radius, and yaw and pitch angles
 void CameraNode::updateCameraGivenParams(glm::vec3 look_at_pos, GLfloat orbit_radius, GLfloat orbit_theta, GLfloat orbit_phi)
 {
     this->look_at_pos = look_at_pos;
@@ -89,32 +98,38 @@ void CameraNode::updateCameraGivenParams(glm::vec3 look_at_pos, GLfloat orbit_ra
     updateCameraGivenOrbit();
 }
 
+// Get FOV
 float CameraNode::getFOV(void)
 {
     return fov;
 }
 
+// Get viewport start x
 int CameraNode::getViewportX(void)
 {
     return vx;
 }
 
+// Get viewport start y
 int CameraNode::getViewportY(void)
 {
     return vy;
 }
 
+// Set FOV
 void CameraNode::setFOV(float fov)
 {
     this->fov = fov;
 }
 
+// Set viewport start x and y
 void CameraNode::setViewportXY(int vx, int vy)
 {
     this->vx = vx;
     this->vy = vy;
 }
 
+// Process mouse button clicks to set up potential movement
 void CameraNode::processMouseButton(int button, int state, int x, int y)
 {
     if ((orbit_flag = ((state == GLUT_DOWN) && (button == GLUT_LEFT_BUTTON))))
@@ -136,6 +151,7 @@ void CameraNode::processMouseButton(int button, int state, int x, int y)
     }
 }
 
+// Process mouse button movement for camera movement
 void CameraNode::processMouseMotion(int x, int y)
 {
     if (orbit_flag)
@@ -177,13 +193,17 @@ void CameraNode::processMouseMotion(int x, int y)
     glutPostRedisplay();
 }
 
+// Given a view transform, modify camera position and then create a look at matrix
 void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
+    // Have look_at_pos act as an origin for transform
     glm::mat4 final_transform = glm::translate(glm::mat4(1.0), look_at_pos) * transform * glm::translate(glm::mat4(1.0), (GLfloat)-1.0 * look_at_pos);
 
+    // Apply transforms to camera and look at positions
     glm::vec4 final_camera_pos = final_transform * glm::vec4(camera_pos.x, camera_pos.y, camera_pos.z, 1.0);
     glm::vec4 final_look_at_pos = final_transform * glm::vec4(look_at_pos.x, look_at_pos.y, look_at_pos.z, 1.0);
 
+    // Create look at matrix
     glm::mat4 view_mat = glm::lookAt(
         glm::vec3(final_camera_pos.x, final_camera_pos.y, final_camera_pos.z),
         glm::vec3(final_look_at_pos.x, final_look_at_pos.y, final_look_at_pos.z), 

@@ -110,6 +110,7 @@ extern string node_type_list[];
 extern string transform_type_list[];
 extern string light_type_list[];
 
+// Initialize GUI components
 void InitializeGUI(void)
 {
     glui = GLUI_Master.create_glui("GLUI");
@@ -217,6 +218,7 @@ void InitializeGUI(void)
 /// Scene graph
 extern SceneGraphContainer scenegraph;
 
+// Update all GUI components according to the current node
 void UpdateGUI(int old_children_vec_size)
 {
     // Start certain components off disabled and then enable ones that are appropriate given program state
@@ -252,6 +254,7 @@ void UpdateGUI(int old_children_vec_size)
     int children_vec_size = curr_node->getChildCount();
     int light_count = scenegraph.getLightCount();
 
+    // Useful flags to be kept in mind when setting GLUI component settings
     bool has_children = (children_vec_size > 0);
     bool is_root = (curr_node == root_node);
     bool is_geom_type = (curr_node_type == "Geometry");
@@ -263,9 +266,11 @@ void UpdateGUI(int old_children_vec_size)
     bool geom_node_selected = (node_type_list[node_type_index] == "Geometry");
     bool light_node_selected = (node_type_list[node_type_index] == "Light");
 
+    // Clear child listbox
     for (int i = 0; i < old_children_vec_size; i++)
         child_node_select->delete_item(i);
 
+    // Populate child listbox if the current node has children
     if (has_children)
     {
         for (int i = 0; i < children_vec_size; i++)
@@ -274,6 +279,7 @@ void UpdateGUI(int old_children_vec_size)
         child_node_select->enable();
         select_child_node->enable();
 
+        // Select first child
         child_node_index = child_node_select->get_item_ptr(
             children_node_type_vec[0].c_str()
             )->id;
@@ -281,12 +287,15 @@ void UpdateGUI(int old_children_vec_size)
         child_node_select->do_selection(child_node_index);
     }
 
+    // Allow selection of parent if the current node is not the root
     if (!is_root)
         select_parent_node->enable();
 
+    // Allow parent injection if the current node is not the root and your aren't trying to add a camera, light, or geometry node
     if (!is_root && !camera_node_selected && !light_node_selected && !geom_node_selected)
         add_parent_node->enable();
 
+    // Allow child addition if current node is not a camera, geometry, or light node and we are able to add an additional light
     if (!is_camera_type && !is_geom_type && !is_light_type && !(light_node_selected && light_count == 8))
         add_child_node->enable();
 
@@ -297,6 +306,7 @@ void UpdateGUI(int old_children_vec_size)
 
         render_type_select->enable();
 
+        // Select render type according to attribute node's current settings
         render_type_index = render_type_select->get_item_ptr(
             (((AttributeNode *)curr_node)->getRenderType()).c_str()
             )->id;
@@ -310,6 +320,7 @@ void UpdateGUI(int old_children_vec_size)
 
         geom_path->enable();
 
+        // Set obj file path to the geometry node's obj file path
         geom_path->set_text(((GeometryNode *)curr_node)->getFilePath().c_str());
     }
     else if (is_transform_type)
@@ -324,15 +335,18 @@ void UpdateGUI(int old_children_vec_size)
         z_param->enable();
         theta_param->enable();
 
+        // Select transform type according to transform node's current settings
         transform_type_index = transform_type_select->get_item_ptr(
             (((TransformNode *)curr_node)->getTransformType()).c_str()
             )->id;
 
         transform_type_select->do_selection(transform_type_index);
 
+        // If the current transform node isn't a rotation, disable theta_param modifications
         if (transform_type_list[transform_type_index] != "Rotate" && ((TransformNode *)curr_node)->getTransformType() != "Rotate")
             theta_param->disable();
 
+        // Set parameters according to transform node's current settings
         animation_param->set_int_val(((TransformNode *)curr_node)->getAnimationFlag());
         x_param->set_float_val(((TransformNode *)curr_node)->getX());
         y_param->set_float_val(((TransformNode *)curr_node)->getY());
@@ -348,6 +362,7 @@ void UpdateGUI(int old_children_vec_size)
         vx_param->enable();
         vy_param->enable();
 
+        // Set camera parameters according to camera node's current settings
         fov_param->set_float_val(((CameraNode *)curr_node)->getFOV());
         vx_param->set_int_val(((CameraNode *)curr_node)->getViewportX());
         vy_param->set_int_val(((CameraNode *)curr_node)->getViewportY());
@@ -359,6 +374,7 @@ void UpdateGUI(int old_children_vec_size)
 
         light_type_select->enable();
 
+        // Select light type according to light node's current settings
         light_type_index = light_type_select->get_item_ptr(
             (((LightNode *)curr_node)->getLightType()).c_str()
             )->id;
@@ -366,15 +382,18 @@ void UpdateGUI(int old_children_vec_size)
         light_type_select->do_selection(light_type_index);
     }
 
+    // Allow for node deletion if the current node is not the root node, a camera node, or the last light node
     if (!is_camera_type && !is_root && !(is_light_type && light_count == 1))
         delete_node->enable();
 
+    // Allow udpates for anything but the root node
     if (!is_root)
         update_node->enable();
 
     GLUI_Master.sync_live_all();
 }
 
+// Given a model, user center as look at position and update the camera
 void UpdateCameraGivenMesh(Trimesh model)
 {
     CameraNode * camera_node = scenegraph.getCameraNode();

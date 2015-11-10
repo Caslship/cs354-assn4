@@ -16,11 +16,13 @@
 #include "geom.h"
 #include "loader.h"
 
+// Get path to .obj file
 std::string GeometryNode::getFilePath(void)
 {
     return file_path;
 }
 
+// Given a file path, load .obj file data for rendering
 void GeometryNode::setMesh(const char * file_path_cstring)
 {
     file_path = file_path_cstring;
@@ -60,12 +62,14 @@ void GeometryNode::setMesh(const char * file_path_cstring)
     UpdateCameraGivenMesh(model);
 }
 
+// Apply model transforms and then render mdoel
 void GeometryNode::traverseNode(glm::mat4 transform, std::string render_type)
 {
     glMatrixMode(GL_MODELVIEW);
 
     glm::vec3 model_center = model.getCenter();
 
+    // Have model center act as an origin for transforms
     glm::mat4 model_mat = glm::translate(glm::mat4(1.0), model_center) * transform * glm::translate(glm::mat4(1.0), (GLfloat)-1.0 * model_center);
 
     glMultMatrixf(glm::value_ptr(model_mat));
