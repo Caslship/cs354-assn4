@@ -5,6 +5,24 @@
 * UTCS: jason777
 */
 
+ABOUT
+-----
+This particular program implements and allows for management of a scenegraph to transform,
+animate, and display .obj files, lights, and a camera.
+
+SCENE GRAPH NODES
+-----------------
+The scene graph is initialized to contain a camera, light, and object node as children and the
+object node contains a geometry node as a child. Order of children is sensitive when traversing
+the scene graph and rendering its contents. Here is a list of the types of nodes that may exist
+within the scene graph:
+
+-- Object nodes: Represent a coordinate and rendering frame for its children (like a seperator).
+-- Geometry nodes: Represent graphical meshes (contain .obj file data).
+-- Transform nodes: Represent transforms (scale, translate, rotate) to be performed and can represent animations.
+-- Attribute nodes: Represent different render modes (point, wireframe, solid, shaded, face norms, vertex norms).
+-- Light nodes: Represent lights within the scene graph.
+-- Camera node: Represents the camera within the scene graph.
 
 MOUSE CONTROLS
 --------------
@@ -16,17 +34,50 @@ The mouse is used for navigating the view space and has several different featur
 
 KEYBOARD COMMANDS
 -----------------
-With the window as active (make sure the display window is clicked on), different key
-sequences can be input and executed to affect the current view. You may see this input 
-through console output. Input a key sequence and press enter to execute a command:
+With the window as active (make sure the display window is clicked on), you enter
+hotkeys to affect the program:
 
 -- [ESC]: Quit application.
 
-USER INTERFACE
---------------
+GRAPHICAL USER INTERFACE
+------------------------
+Powered by the GLUI library, a simple (albeit hard to work with) graphical user interface
+has been implemented to navigate and manage the scene graph. Here are a list of the components
+and their effect:
+
+-- "Edit Scene Graph" panel: Contains tools to navigate and modify the structure of the scene graph.
+---- "Node Selection" panel: Navigation tools for the scene graph given a current node
+------ "Child" listbox: Used to select a particular child of the current node.
+------ "Select Child" button: Navigate to a selected child node and set as the current node. 
+------ "Select Parent" button: Navigate to the parent node and set as the current node.
+---- "Node Addition" panel: Modification tools for the structure of the scene graph given a current node.
+------ "Type" listbox: Used to select the type of node to be added to scene graph.
+------ "Add Child" button: Add a child node to the current node.
+------ "Add Parent" button: Inject a parent node between the current node and its parent.
+-- "Edit Current Node" panel: Contains tools to modify node-type-specific parameters of the current node.
+---- "Attribute" panel: Modify parameters of an attribute node.
+------ "Render" listbox: Set the render mode (point, wireframe, solid, shaded, face norms, vertex norms).
+---- "Geometry" panel: Modify parameters of a geometry node.
+------ "Obj" string text field: Set the path to the .obj file to be rendered.
+---- "Transformation" panel: Modify parameters of a transformation node.
+------ "Type" listbox: Set the type of transformation (scale, translate, rotate).
+------ "Animation" checkbox: Read the transformation parameters to perform an animation.
+------ "X" float text field: Set the X parameter of the transformation (changes with type).
+------ "Y" float text field: Set the Y parameter of the transformation (changes with type).
+------ "Z" float text field: Set the Z parameter of the transformation (changes with type).
+------ "Theta" float text field: Set the Theta parameter of the transformation (rotations only).
+---- "Camera" panel: Modify parameters of the camera node.
+------ "FOV" float text field: Set the field-of-view.
+------ "Viewport X" int text field: Set the start X coordinate of the viewport.
+------ "Viewport Y" int text field: Set the start Y coordinate fo the viewport.
+---- "Light" panel: Modify parameters of a light node.
+------ "Type" listbox: Set the type of light (point, directional).
+---- "Update" button: Update the current node to reflect changes made to node-type-specific parameters.
+---- "Delete" button: Delete the current node and set its parent as the current node afterward.
 
 EXTRA CREDIT
 ------------
-Please take note of the following
+Please take note of the following when grading:
 
 -- Up to 8 different lights can be placed within the scene
+-- Transformation nodes can be used as animations (see "Graphical User Interface" section)
