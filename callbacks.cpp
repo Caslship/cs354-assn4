@@ -58,6 +58,7 @@ GLUI_EditText * z_param;
 GLUI_EditText * theta_param;
 GLUI_Checkbox * animation_param;
 GLUI_Rollout * camera_node_panel;
+GLUI_EditText * fov_param;
 GLUI_EditText * vx_param;
 GLUI_EditText * vy_param;
 GLUI_Rollout * light_node_panel;
@@ -99,6 +100,7 @@ void Reshape(int w, int h)
     g_height = h;
 
     CameraNode * camera_node = scenegraph.getCameraNode();
+    float fov = camera_node->getFOV();
     int vx = camera_node->getViewportX();
     int vy = camera_node->getViewportY();
 
@@ -106,7 +108,7 @@ void Reshape(int w, int h)
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0, (float)g_width / (float)g_height, g_near_plane, g_far_plane);
+    gluPerspective(fov, (float)g_width / (float)g_height, g_near_plane, g_far_plane);
 
     glMatrixMode(GL_MODELVIEW);
 
@@ -142,8 +144,6 @@ void Idle(void)
 
     glutPostRedisplay(); 
 }
-
-extern void UpdateGUI(int);
 
 void Control(int control_id)
 {
@@ -288,11 +288,13 @@ void Control(int control_id)
             }
             else if (curr_node_type == "Camera")
             {
+                float fov = fov_param->get_float_val();
                 int vx = vx_param->get_int_val();
                 int vy = vy_param->get_int_val();
 
-                if ((vx >= 0 && vx <= g_width) && (vy >= 0 && vy <= g_height))
+                if ((vx >= 0 && vx <= g_width) && (vy >= 0 && vy <= g_height) && (fov >= 22.5 && fov <= 67.5))
                 {
+                    ((CameraNode *)curr_node)->setFOV(fov);
                     ((CameraNode *)curr_node)->setViewportXY(vx, vy);
 
                     Reshape(g_width, g_height);

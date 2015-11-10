@@ -41,6 +41,9 @@ private:
     int start_pan_x;
     int start_pan_y;
 
+    // Field-of-View
+    float fov;
+
     // Viewport
     int vx;
     int vy;
@@ -53,8 +56,10 @@ public:
     CameraNode(void);
     CameraNode(Node * parent);
     void updateCameraGivenParams(glm::vec3 look_at_pos = glm::vec3(0.0, 0.0, 0.0), GLfloat orbit_radius = 10.0, GLfloat orbit_theta = -90.0, GLfloat orbit_phi = 0.0);
+    float getFOV(void);
     int getViewportX(void);
     int getViewportY(void);
+    void setFOV(float fov = 45.0);
     void setViewportXY(int vx = 0, int vy = 0);
     void processMouseButton(int button, int state, int x, int y);
     void processMouseMotion(int x, int y);

@@ -24,6 +24,7 @@ CameraNode::CameraNode(void) : camera_pos(0.0, 0.0, 10.0), look_at_pos(0.0, 0.0,
     orbit_phi = 0.0;
     orbit_radius = 10.0;
 
+    fov = 45.0;
     vx = 0, vy = 0;
 
     updateCameraGivenOrbit();
@@ -40,6 +41,7 @@ CameraNode::CameraNode(Node * parent) : camera_pos(0.0, 0.0, 10.0), look_at_pos(
     orbit_phi = 0.0;
     orbit_radius = 10.0;
 
+    fov = 45.0;
     vx = 0, vy = 0;
 
     updateCameraGivenOrbit();
@@ -87,6 +89,11 @@ void CameraNode::updateCameraGivenParams(glm::vec3 look_at_pos, GLfloat orbit_ra
     updateCameraGivenOrbit();
 }
 
+float CameraNode::getFOV(void)
+{
+    return fov;
+}
+
 int CameraNode::getViewportX(void)
 {
     return vx;
@@ -95,6 +102,11 @@ int CameraNode::getViewportX(void)
 int CameraNode::getViewportY(void)
 {
     return vy;
+}
+
+void CameraNode::setFOV(float fov)
+{
+    this->fov = fov;
 }
 
 void CameraNode::setViewportXY(int vx, int vy)

@@ -89,6 +89,7 @@ extern GLUI_EditText * z_param;
 extern GLUI_EditText * theta_param;
 extern GLUI_Checkbox * animation_param;
 extern GLUI_Rollout * camera_node_panel;
+extern GLUI_EditText * fov_param;
 extern GLUI_EditText * vx_param;
 extern GLUI_EditText * vy_param;
 extern GLUI_Rollout * light_node_panel;
@@ -183,6 +184,9 @@ void InitializeGUI(void)
 
         // Camera panel
         camera_node_panel = glui->add_rollout_to_panel(curr_node_panel, "Camera", false);
+
+            // Field-of-View paramater textbox
+            fov_param = glui->add_edittext_to_panel(camera_node_panel, "FOV", GLUI_EDITTEXT_FLOAT);
 
             // Viewport parameter textboxes
             vx_param = glui->add_edittext_to_panel(camera_node_panel, "Viewport X", GLUI_EDITTEXT_INT);
@@ -340,8 +344,13 @@ void UpdateGUI(int old_children_vec_size)
         camera_node_panel->enable();
         camera_node_panel->open();
 
+        fov_param->enable();
         vx_param->enable();
         vy_param->enable();
+
+        fov_param->set_float_val(((CameraNode *)curr_node)->getFOV());
+        vx_param->set_int_val(((CameraNode *)curr_node)->getViewportX());
+        vy_param->set_int_val(((CameraNode *)curr_node)->getViewportY());
     }
     else if (is_light_type)
     {

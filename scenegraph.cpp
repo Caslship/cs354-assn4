@@ -13,6 +13,7 @@
 #include "cameranode.h"
 #include "lightnode.h"
 #include "objectnode.h"
+#include "geometrynode.h"
 
 SceneGraphContainer::SceneGraphContainer(void)
 {
@@ -27,6 +28,7 @@ SceneGraphContainer::SceneGraphContainer(void)
         free_light_ids.push(GL_LIGHT0 + i);
 
     ObjectNode * object_node = new ObjectNode(root_node);
+    GeometryNode * geom_node = new GeometryNode(object_node);
 }
 
 SceneGraphContainer::~SceneGraphContainer(void)
