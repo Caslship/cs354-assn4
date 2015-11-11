@@ -203,6 +203,23 @@ void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
     glm::vec4 final_camera_pos = final_transform * glm::vec4(camera_pos.x, camera_pos.y, camera_pos.z, 1.0);
     glm::vec4 final_look_at_pos = final_transform * glm::vec4(look_at_pos.x, look_at_pos.y, look_at_pos.z, 1.0);
 
+    // glm::vec3 final_forward_vec = glm::normalize(
+    //     glm::vec3(  final_look_at_pos.x - final_camera_pos.x,
+    //                 final_look_at_pos.y - final_camera_pos.y,
+    //                 final_look_at_pos.z - final_camera_pos.z )
+    //     );
+
+    // GLfloat final_orbit_phi = glm::degrees(asin(final_forward_vec.y));
+    // GLfloat final_orbit_theta = glm::degrees(asin(final_forward_vec.z / cos(glm::radians(final_orbit_phi))));
+
+    // if (final_orbit_phi != orbit_phi || final_orbit_theta != orbit_theta)
+    // {
+    //     orbit_phi = final_orbit_phi;
+    //     orbit_theta = final_orbit_theta;
+
+    //     updateVectors();
+    // }
+
     // Create look at matrix
     glm::mat4 view_mat = glm::lookAt(
         glm::vec3(final_camera_pos.x, final_camera_pos.y, final_camera_pos.z),
