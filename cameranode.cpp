@@ -13,6 +13,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "enums.h"
 
+#include <iostream>
+
 CameraNode::CameraNode(void) : camera_pos(0.0, 0.0, 10.0), look_at_pos(0.0, 0.0, 0.0), Node(NULL, "Camera")
 {
     orbit_flag = false;
@@ -210,8 +212,20 @@ void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
     //                 final_look_at_pos.z - final_camera_pos.z )
     //     );
 
+    // bool is_negative =  (final_forward_vec.x < 0.0 && final_forward_vec.z < 0.0);
+    // bool is_positive = (final_forward_vec.x < 0.0 && final_forward_vec.z > 0.0);
+
     // GLfloat final_orbit_phi = glm::degrees(asin(final_forward_vec.y));
     // GLfloat final_orbit_theta = glm::degrees(asin(final_forward_vec.z / cos(glm::radians(final_orbit_phi))));
+    // final_orbit_theta = (is_negative ? -180.0 - final_orbit_theta : (is_positive ? 180.0 - final_orbit_theta : final_orbit_theta));
+
+    // if (final_orbit_theta != orbit_theta || final_orbit_phi != orbit_phi)
+    // {
+    //     orbit_theta = final_orbit_theta;
+    //     orbit_phi = final_orbit_phi;
+
+    //     updateVectors();
+    // }
 
     // Create look at matrix
     glm::mat4 view_mat = glm::lookAt(
