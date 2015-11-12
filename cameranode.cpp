@@ -203,6 +203,7 @@ void CameraNode::traverseNode(glm::mat4 transform, std::string render_type)
     glm::vec4 final_camera_pos = final_transform * glm::vec4(camera_pos.x, camera_pos.y, camera_pos.z, 1.0);
     glm::vec4 final_look_at_pos = final_transform * glm::vec4(look_at_pos.x, look_at_pos.y, look_at_pos.z, 1.0);
 
+    // Panning relies on consistent right and up vectors so we need to update orbit_theta and orbit_phi (FIX ME)
     // glm::vec3 final_forward_vec = glm::normalize(
     //     glm::vec3(  final_look_at_pos.x - final_camera_pos.x,
     //                 final_look_at_pos.y - final_camera_pos.y,
