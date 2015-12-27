@@ -8,7 +8,8 @@
 ABOUT
 -----
 This particular program implements and allows for management of a scenegraph to transform,
-animate, and display .obj files, lights, and a camera.
+animate, and display .obj files, lights, and a camera. It is my submission for the 4th project of the CS 354
+Fall 2015 Computer Graphics course at the University of Texas at Austin. 
 
 SCENE GRAPH NODES
 -----------------
@@ -81,3 +82,8 @@ Please take note of the following when grading:
 
 -- Up to 8 different lights can be placed within the scene
 -- Transformation nodes can be used as animations (see "Graphical User Interface" section)
+
+DISCLAIMER
+----------
+I do not condone cheating. This project is available online to serve as a reference for both potential employers and 
+anyone else who is curious.
